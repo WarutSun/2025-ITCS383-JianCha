@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
+const { getAllCars, getCarById } = require('../controllers/carController');
 
-router.get('/', (req, res) => res.json({ message: 'get cars' }));
-router.get('/:id', (req, res) => res.json({ message: 'get car by id' }));
+router.get('/', getAllCars);
+router.get('/:id', getCarById);
 
 module.exports = router;

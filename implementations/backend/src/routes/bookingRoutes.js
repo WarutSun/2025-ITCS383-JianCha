@@ -1,7 +1,9 @@
 const express = require('express');
 const router = express.Router();
+const { authenticate } = require('../middleware/authMiddleware');
+const { createBooking, getMyBookings } = require('../controllers/bookingController');
 
-router.get('/', (req, res) => res.json({ message: 'get bookings' }));
-router.post('/', (req, res) => res.json({ message: 'create booking' }));
+router.get('/', authenticate, getMyBookings);
+router.post('/', authenticate, createBooking);
 
 module.exports = router;
