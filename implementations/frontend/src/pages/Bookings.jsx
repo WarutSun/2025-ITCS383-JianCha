@@ -32,7 +32,7 @@ function Bookings() {
   useEffect(() => {
     if (!localStorage.getItem('token')) return navigate('/login')
     fetchBookings()
-  }, [])
+  }, [navigate])
 
   const handleCancelBooking = async (bookingId) => {
     if (!window.confirm('Are you sure you want to cancel this booking?')) return
@@ -49,6 +49,29 @@ function Bookings() {
     } finally {
       setCancelingId(null)
     }
+  }
+
+  const handlePayNow = (booking) => {
+    // Navigate to payment page with booking details
+    navigate('/payment', {
+      state: {
+        bookingId: booking.id,
+        carId: booking.car_id,
+        pickup_date: booking.pickup_date,
+        return_date: booking.return_date,
+        car: {
+          brand: booking.brand,
+          model: booking.model,
+          type: booking.type,
+          location: booking.location,
+          price_per_day: booking.total_price / Math.ceil((new Date(booking.return_date) - new Date(booking.pickup_date)) / (1000 * 60 * 60 * 24))
+        },
+        days: Math.ceil((new Date(booking.return_date) - new Date(booking.pickup_date)) / (1000 * 60 * 60 * 24)),
+        originalPrice: booking.total_price,
+        discountedPrice: booking.total_price,
+        promo_code: null
+      }
+    })
   }
 
   return (
@@ -101,6 +124,15 @@ function Bookings() {
                         </span>
                       </TableCell>
                       <TableCell>
+                        {b.status === 'pending' && (
+                          <Button
+                            size="sm"
+                            className="mr-2 bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded-lg"
+                            onClick={() => handlePayNow(b)}
+                          >
+                            Pay Now
+                          </Button>
+                        )}
                         {(b.status === 'pending' || b.status === 'confirmed') && (
                           <Button
                             variant="destructive"

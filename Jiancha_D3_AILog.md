@@ -110,3 +110,19 @@
 - **Accepted:** cancelBooking controller, DELETE route, Cancel button in Bookings.jsx
 - **Rejected:** None
 - **Verification:** Logged in as member, cancelled booking, confirmed status changed to cancelled and car became available again
+
+## Entry 16 — Car Search & Filter + Staff Car CRUD + Calendar Fix + Payment Button Fix
+- **Date:** 2026-03-10
+- **Tool:** GitHub Copilot
+- **Prompt used:** "Fix calendar white theme, fix Pay Now button green color, add Staff Car CRUD endpoints and CarManagement page, add Cars page search/filter by name/type/location/sort"
+- **Accepted:** Calendar bg-white wrapper, green Pay Now button, staffCarController.js, CarManagement.jsx, search+filter+sort client-side in Cars.jsx
+- **Rejected:** None
+- **Verification:** Manually tested calendar navigation visible, Pay Now button green and visible, Staff can add/edit/delete cars, search and filter working on Cars page
+
+## Entry 17 — Updated Unit Tests for New Endpoints
+- **Date:** 2026-03-10
+- **Tool:** GitHub Copilot
+- **Prompt used:** "Update Jest tests to cover new endpoints: staff dashboard, staff car CRUD, reset DB, pay booking, promo code discount, date validation"
+- **Accepted:** tests/staff.test.js, updated tests/booking.test.js with new test cases
+- **Rejected:** None
+- **Verification:** npm test — all tests passed

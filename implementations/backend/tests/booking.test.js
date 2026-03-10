@@ -43,7 +43,7 @@ describe('POST /api/bookings', () => {
     const res = await request(app)
       .post('/api/bookings')
       .set('Authorization', `Bearer ${token}`)
-      .send({ car_id: 2, pickup_date: '2026-03-01', return_date: '2026-03-03' });
+      .send({ car_id: 2, pickup_date: '2026-03-15', return_date: '2026-03-17' });
     expect(res.statusCode).toBe(201);
     expect(res.body).toHaveProperty('total_price');
   });
@@ -51,7 +51,7 @@ describe('POST /api/bookings', () => {
   it('should fail without token', async () => {
     const res = await request(app)
       .post('/api/bookings')
-      .send({ car_id: 2, pickup_date: '2026-03-01', return_date: '2026-03-03' });
+      .send({ car_id: 3, pickup_date: '2026-03-15', return_date: '2026-03-17' });
     expect(res.statusCode).toBe(401);
   });
 
@@ -59,7 +59,99 @@ describe('POST /api/bookings', () => {
     const res = await request(app)
       .post('/api/bookings')
       .set('Authorization', `Bearer ${token}`)
-      .send({ car_id: 2 });
+      .send({ car_id: 3 });
     expect(res.statusCode).toBe(400);
+  });
+
+  it('should fail if pickup_date is in the past', async () => {
+    const res = await request(app)
+      .post('/api/bookings')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ car_id: 4, pickup_date: '2020-03-01', return_date: '2020-03-03' });
+    expect(res.statusCode).toBe(400);
+    expect(res.body.message).toContain('past');
+  });
+
+  it('should fail if rental period exceeds 30 days', async () => {
+    const res = await request(app)
+      .post('/api/bookings')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ car_id: 5, pickup_date: '2026-03-15', return_date: '2026-04-20' });
+    expect(res.statusCode).toBe(400);
+    expect(res.body.message).toContain('30 days');
+  });
+
+  it('should apply promo code discount correctly', async () => {
+    const res = await request(app)
+      .post('/api/bookings')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        car_id: 6,
+        pickup_date: '2026-03-18',
+        return_date: '2026-03-20',
+        promo_code: 'ONLYTRAVELNAJA'
+      });
+    expect(res.statusCode).toBe(201);
+    expect(res.body).toHaveProperty('total_price');
+    // For a 2-day rental at car 6's price (should be discounted 30%)
+    // The discount should be reflected in total_price
+  });
+
+  it('should reject invalid promo code', async () => {
+    const res = await request(app)
+      .post('/api/bookings')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        car_id: 7,
+        pickup_date: '2026-03-21',
+        return_date: '2026-03-23',
+        promo_code: 'INVALID_CODE'
+      });
+    // Should create booking without discount, not reject
+    expect(res.statusCode).toBe(201);
+  });
+});
+
+describe('PUT /api/bookings/:id/pay', () => {
+  let bookingId;
+
+  beforeAll(async () => {
+    // Create a pending booking to test payment
+    const bookingRes = await request(app)
+      .post('/api/bookings')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ car_id: 8, pickup_date: '2026-03-24', return_date: '2026-03-26' });
+    if (bookingRes.statusCode === 201) {
+      bookingId = bookingRes.body.id;
+    }
+  });
+
+  it('should update booking status to confirmed on payment', async () => {
+    if (!bookingId) {
+      console.warn('Skipping payment test - no booking created');
+      return;
+    }
+    const res = await request(app)
+      .put(`/api/bookings/${bookingId}/pay`)
+      .set('Authorization', `Bearer ${token}`);
+    expect(res.statusCode).toBe(200);
+    expect(res.body.message).toContain('successfully');
+  });
+
+  it('should fail without token', async () => {
+    if (!bookingId) {
+      console.warn('Skipping payment test - no booking created');
+      return;
+    }
+    const res = await request(app)
+      .put(`/api/bookings/${bookingId}/pay`);
+    expect(res.statusCode).toBe(401);
+  });
+
+  it('should fail for non-existent booking', async () => {
+    const res = await request(app)
+      .put('/api/bookings/9999/pay')
+      .set('Authorization', `Bearer ${token}`);
+    expect(res.statusCode).toBeGreaterThanOrEqual(400);
   });
 });

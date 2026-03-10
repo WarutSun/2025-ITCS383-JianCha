@@ -12,7 +12,7 @@ const getDashboard = async (req, res) => {
 
     res.json({
       totalBookings: bookingStats.totalBookings,
-      totalRevenue: bookingStats.totalRevenue,
+      totalRevenue: Number(bookingStats.totalRevenue),
       availableCars: carStats.availableCars,
     });
   } catch (err) {
@@ -34,4 +34,19 @@ const getReservationReport = async (req, res) => {
   }
 };
 
-module.exports = { getDashboard, getReservationReport };
+// reset database - delete all bookings and reset car availability
+const resetDatabase = async (req, res) => {
+  try {
+    // Delete all bookings
+    await db.query('DELETE FROM bookings');
+    
+    // Reset all cars to available
+    await db.query('UPDATE cars SET is_available = TRUE');
+    
+    res.json({ message: 'Database reset successfully' });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};
+
+module.exports = { getDashboard, getReservationReport, resetDatabase };

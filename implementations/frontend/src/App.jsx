@@ -5,17 +5,19 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import Cars from './pages/Cars'
 import Bookings from './pages/Bookings'
+import PaymentSimulation from './pages/PaymentSimulation'
 import Dashboard from './pages/Staff/Dashboard'
 import Reports from './pages/Staff/Reports'
+import CarManagement from './pages/Staff/CarManagement'
 import { getUserRole } from './lib/auth'
 import { Navigate } from 'react-router-dom'
 
-function App() {
+const StaffRoute = ({ children }) => {
   const role = getUserRole();
-  const StaffRoute = ({ children }) => {
-    return role === 'staff' ? children : <Navigate to="/" />;
-  };
+  return role === 'staff' ? children : <Navigate to="/" />;
+};
 
+function App() {
   return (
     <>
       <Navbar />
@@ -25,6 +27,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/cars" element={<Cars />} />
         <Route path="/bookings" element={<Bookings />} />
+        <Route path="/payment" element={<PaymentSimulation />} />
         <Route
           path="/staff"
           element={<StaffRoute><Dashboard /></StaffRoute>}
@@ -33,9 +36,14 @@ function App() {
           path="/staff/reports"
           element={<StaffRoute><Reports /></StaffRoute>}
         />
+        <Route
+          path="/staff/cars"
+          element={<StaffRoute><CarManagement /></StaffRoute>}
+        />
       </Routes>
     </>
   )
 }
 
 export default App
+
