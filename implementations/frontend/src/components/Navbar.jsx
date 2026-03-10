@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { Button } from './ui/button'
 import { Badge } from './ui/badge'
 import { getUserRole } from '../lib/auth'
-import { ShoppingCart, X } from 'lucide-react'
+import { ShoppingCart, X, User } from 'lucide-react'
 import api from '../services/api'
 import Logo from './Logo'
 
@@ -86,6 +86,12 @@ function Navbar() {
                           {pendingCount}
                         </Badge>
                       )}
+                    </div>
+                  </Link>
+                  <Link to="/profile" className="text-foreground hover:text-primary transition">
+                    <div className="flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      Profile
                     </div>
                   </Link>
                   <Button variant="outline" size="sm" onClick={logout}>

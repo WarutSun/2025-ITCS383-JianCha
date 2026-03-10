@@ -6,6 +6,7 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import Cars from './pages/Cars'
 import Bookings from './pages/Bookings'
+import Profile from './pages/Profile'
 import PaymentSimulation from './pages/PaymentSimulation'
 import Dashboard from './pages/Staff/Dashboard'
 import Reports from './pages/Staff/Reports'
@@ -29,6 +30,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/cars" element={<Cars />} />
         <Route path="/bookings" element={<Bookings />} />
+        <Route path="/profile" element={<Profile />} />
         <Route path="/payment" element={<PaymentSimulation />} />
         <Route
           path="/staff"
