@@ -1,1 +1,0 @@
- 2webXhr#implementations/frontend/index.html
