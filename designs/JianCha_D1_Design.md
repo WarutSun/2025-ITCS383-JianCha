@@ -23,7 +23,7 @@
 2. ### Container Diagram
 
    The design of this Container Diagram zooms into the Travel Naja system boundary to show the high-level technology choices and how responsibilities are divided across containers, and how they communicate with each other.  
-   ![Container Diagram](https://github.com/ICT-Mahidol/2025-ITCS383-JianCha/blob/master/designs/Diagrams/Container_diagram.png)
+   ![Container Diagram](designs/Diagrams/Container_diagram.png)
    **1\. Requirements Alignment:** The diagram maps each container to the system's core responsibilities:  
 * **Web Application** (React, Vite.js, Tailwind — Hosted by Vercel): Serves as the single interface for all actors in which Guest browses and registers, Membership user makes and manages reservations, and Back-end Staff generates reports  
 * **API Gateway** (Express — Hosted by Render): Handles all incoming API calls from the Web Application, providing authentication, rate limiting, and request routing as a single entry point for all backend calls  
