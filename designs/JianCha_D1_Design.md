@@ -105,7 +105,7 @@ Use Case Diagram describes the main interactions between users and the Travel Na
   * **Manage payment details** – allows membership users to store and manage credit card information and confirm the payment for a reservation.  
   * **Process payment** – allows the bank gateway to handle and  authorize the payment process.
 
-    	These use cases directly support the requirement which states that the system must communicate with the bank's credit card gateway to process payments and provide a credit card payment for membership users.
+    These use cases directly support the requirement which states that the system must communicate with the bank's credit card gateway to process payments and provide a credit card payment for membership users.
 
 * **Reporting and Monitoring:** Back-end staff must be able to analyze system data and generate reports. Related use cases:  
   * **View/track reservation records** – allows the back-end staff to monitor reservation activities.  
