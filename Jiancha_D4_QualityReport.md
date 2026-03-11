@@ -2,7 +2,7 @@
 
 ### Screenshot
 
-![SonarQube Overview](image.png)
+![SonarQube Overview](./images/Overview.png)
 
 ---
 
@@ -18,7 +18,7 @@ Although these issues are not critical, addressing them would help improve the l
 
 ## Quality Gate Configuration
 
-![Quality Gate Configuration](image-2.png)
+![Quality Gate Configuration](./images/QualityGateConfig.png)
 
 The project uses the default **Sonar Way Quality Gate**, which follows the *Clean as You Code* methodology. This quality gate defines the conditions that newly added code must satisfy in order to maintain a healthy codebase.
 
@@ -110,7 +110,7 @@ This indicates that the project avoids repeating the same logic across multiple 
 ---
 
 ## Issue Overview
-![Analyzed Issues](image-1.png)
+![Analyzed Issues](./images/CodeSmellAnalysis.png)
 
 The analysis identified **13 code smell issues** in total. These issues are mostly related to maintainability and coding practices rather than functional errors.
 
