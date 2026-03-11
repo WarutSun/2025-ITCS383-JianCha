@@ -6,11 +6,11 @@
 
    The design of this Context Diagram shows the big picture of the Travel Naja System. It shows which actors and external systems interact with the system and how they conceptually relate to it.  
 
-   ![Context Diagram](https://github.com/ICT-Mahidol/2025-ITCS383-JianCha/blob/a9c83d4dcd2184c5404896d35fe4bd4c2aab6b13/images/Diagrams/Context_diagram.png)
+   ![Context Diagram](https://github.com/ICT-Mahidol/2025-ITCS383-JianCha/blob/a9c83d4dcd2184c5404896d35fe4bd4c2aab6b13/images/Diagrams/Context_diagram(1).png)
 
    1. **Requirements Alignment:** The diagram addresses key stakeholders from the requirements and shows who needs to do what:  
-      - **Guest:** View promotions and public content, Register account  
-      - **Membership User:** Make a reservation  
+      - **Guest:** View promotions and browse public content, Register account  
+      - **Membership User:** Create a reservation, View promotions and browse public content, Log in, and Update proifle
       - **Back-end Staff:** Manage reservation, Generate reports  
       - **Flight Agency:** Provides flight data and handles ticket reservations  
       - **Car Agency:** Provides car rental availability and booking
@@ -18,7 +18,7 @@
       - **Bank Gateway:** Processes credit card transactions
         
    2. **Design Decision:**  
-      - **Actor Separation:** Actors are separated by roles in which Guest represents unauthenticated users who can only browse, while Membership User represents authenticated users who can perform bookings and Back-end Staff can manage reservations, reflecting different access levels in the system.  
+      - **Actor Separation:** Actors are separated by roles in which Guest represents unauthenticated users who can only browse, while Membership User represents authenticated users who can perform bookings and update profile, and Back-end Staff can manage reservations, reflecting different access levels in the system.  
       - **External Integration:** External systems including Flight Agency, Car Agency, Hotel Agency, and Bank Gateway are included to support the core requirement of travel booking. These systems are owned and operated by third parties, so they sit outside the system boundary.
       - **System Boundary:** The single "Travel Naja" node represents the entire system as a black box, separating what the system is responsible for from its external dependencies, keeping the diagram at the appropriate level of abstraction for C4 Level 1\.
 
@@ -26,7 +26,7 @@
 
    The design of this Container Diagram zooms into the Travel Naja system boundary to show the high-level technology choices and how responsibilities are divided across containers, and how they communicate with each other.  
 
-   ![Container Diagram](https://github.com/ICT-Mahidol/2025-ITCS383-JianCha/blob/a9c83d4dcd2184c5404896d35fe4bd4c2aab6b13/images/Diagrams/Container_diagram.png)
+   ![Container Diagram](https://github.com/ICT-Mahidol/2025-ITCS383-JianCha/blob/a9c83d4dcd2184c5404896d35fe4bd4c2aab6b13/images/Diagrams/Container_diagram(1).png)
 
    1. **Requirements Alignment:** The diagram maps each container to the system's core responsibilities:  
       - **Web Application** (React, Vite.js, Tailwind — Hosted by Vercel): Serves as the single interface for all actors in which Guest browses and registers, Membership user makes and manages reservations, and Back-end Staff generates reports
