@@ -2,7 +2,7 @@
 
 ## 🌐 Live Demo
 
-- **Frontend:** https://jiancha-travel-reservation-system-f.vercel.app/
+-  https://jianchatravelnaja.vercel.app/
 
 ### 🔑 Test Accounts
 
