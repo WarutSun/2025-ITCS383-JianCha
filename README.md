@@ -50,21 +50,34 @@ Make sure you have the following installed:
 ## 🛠️ Build & Run Instructions
 
 ```bash
-# 1. clone the repository
-git clone https://github.com/earthslipz/Jiancha-Travel-Reservation-System-focus-on-car-rental-reservation-.git
-cd Jiancha-Travel-Reservation-System-focus-on-car-rental-reservation-
+# 1. Clone the repository
+git clone https://github.com/ICT-Mahidol/2025-ITCS383-JianCha.git
+cd 2025-ITCS383-JianCha
 
-# 2. start the database
+# 2. Start MySQL database
 docker compose up -d
 
-# 3. start the backend
+# 3. Start Backend (Terminal 1)
 cd implementations/backend
-cp .env.example .env          # configure your DB credentials if needed
+cp .env.example .env
 npm install
 npm run dev
 
-# 4. start the frontend
-cd ../frontend
+# 4. Update Frontend .env with your Codespace URL (Terminal 2)
+# First, check your Codespace name:
+echo $CODESPACE_NAME
+# Example output: crispy-robot-pj449jw97rg3g96
+
+# Then update the frontend .env:
+echo "VITE_API_URL=https://${CODESPACE_NAME}-8080.app.github.dev/api" > implementations/frontend/.env
+
+# Verify it looks correct (example):
+cat implementations/frontend/.env
+# Expected output:
+# VITE_API_URL=https://crispy-robot-pj449jw97rg3g96-8080.app.github.dev/api
+
+# 5. Start Frontend (Terminal 2)
+cd implementations/frontend
 npm install
 npm run dev
 ```
