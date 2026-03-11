@@ -6,7 +6,7 @@
 
    The design of this Context Diagram shows the big picture of the Travel Naja System. It shows which actors and external systems interact with the system and how they conceptually relate to it.  
 
-   ![Context Diagram](https://github.com/ICT-Mahidol/2025-ITCS383-JianCha/blob/a9c83d4dcd2184c5404896d35fe4bd4c2aab6b13/images/Diagrams/Context_diagram.png)
+   ![Context Diagram](https://github.com/ICT-Mahidol/2025-ITCS383-JianCha/blob/98a880124f3b373580658b227cb904cbee4ebefa/images/Diagrams/Context_diagram.png)
    
    1. **Requirements Alignment:** The diagram addresses key stakeholders from the requirements and shows who needs to do what:  
       - **Guest:** View promotions and public content, Register account  
@@ -26,7 +26,7 @@
 
    The design of this Container Diagram zooms into the Travel Naja system boundary to show the high-level technology choices and how responsibilities are divided across containers, and how they communicate with each other.  
 
-   ![Container Diagram](https://github.com/ICT-Mahidol/2025-ITCS383-JianCha/blob/a9c83d4dcd2184c5404896d35fe4bd4c2aab6b13/images/Diagrams/Container_diagram.png)
+   ![Container Diagram](https://github.com/ICT-Mahidol/2025-ITCS383-JianCha/blob/98a880124f3b373580658b227cb904cbee4ebefa/images/Diagrams/Container_diagram.png)
 
    1. **Requirements Alignment:**  The diagram maps each container to the system's core responsibilities:  
       - **Web Application** (React, Vite.js, Tailwind — Hosted by Vercel): Serves as the single interface for all actors in which Guest browses and registers, Membership user makes and manages reservations, and Back-end Staff generates reports
@@ -45,7 +45,7 @@
 
    The design of this Component Diagram zooms into the Core Booking & Guide Management Service to show the internal components, their responsibilities, and how they interact with each other and with external systems.
 
-![Component Diagram](https://github.com/ICT-Mahidol/2025-ITCS383-JianCha/blob/a9c83d4dcd2184c5404896d35fe4bd4c2aab6b13/images/Diagrams/Component_diagram.png)
+![Component Diagram](https://github.com/ICT-Mahidol/2025-ITCS383-JianCha/blob/98a880124f3b373580658b227cb904cbee4ebefa/images/Diagrams/Component_diagram.png)
 
    1. **Requirements Alignment:** Each component maps directly to a core system responsibility:
       - **API Routes & Controllers** (Express, NestJS): Receives all incoming requests from API Gateway and routes them to the appropriate internal components, acting as the internal entry point.
