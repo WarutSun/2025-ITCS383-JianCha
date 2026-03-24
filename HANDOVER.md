@@ -128,32 +128,82 @@ MySQL Database (Docker)
 
 ---
 
-### c. Code Quality (SonarQube)
+### c. Code Quality (SonarQube Analysis)
 
-**Test Coverage**
-- 79.52% coverage
-- 35 tests passed
+The project was analyzed using SonarQube, and the results show that the system **passed the Quality Gate**, indicating that it meets the required quality standards.
 
-**Strengths**
-- Clear folder structure
-- Good API design
-- Authentication implemented
-- Tests cover main features
+### Quality Metrics Summary
 
-**Weaknesses**
-- No service layer
-- Some logic inside controllers
-- No external API abstraction
-- Monolithic structure
-
-**Estimated SonarQube Results**
-- Bugs: Low
-- Vulnerabilities: Low
-- Code Smells: Medium
-- Maintainability: Medium
-- Reliability: High
+| Metric | Result |
+|------|------|
+| Quality Gate | Passed |
+| Security Issues | 0 |
+| Reliability Issues | 0 |
+| Maintainability Issues | 3 |
+| Test Coverage | 72.9% |
+| Code Duplication | 0.0% |
+| Security Hotspots | 2 |
 
 ---
+
+### Strengths
+
+- **No Bugs (Reliability A)** → System is stable
+- **No Vulnerabilities (Security A)** → No critical security risks detected
+- **0% Code Duplication** → Clean and maintainable codebase
+- **Good Test Coverage (72.9%)** → Most core features are tested
+
+---
+
+### Maintainability Issues (3 Issues)
+
+1. **Using Array instead of Set (bookingController.js)**
+   - Promo codes stored in array instead of Set
+   - Recommended: use `Set` and `.has()` for better performance
+
+2. **Unexpected negated condition (staffCarController.js)**
+   - Reduces readability
+   - Should simplify logic for clarity
+
+3. **Using Array instead of Set (db.js)**
+   - Column checking uses array instead of Set
+   - Should use `Set` for efficiency
+
+---
+
+### Security Hotspots (2 Issues)
+
+1. **CORS Configuration**
+   - Location: `app.js`
+   - Issue: Allows all origins (`origin: '*'`)
+   - Risk: Any domain can access the API
+   - Recommendation: Restrict allowed origins in production
+
+2. **Framework Information Exposure**
+   - The system may expose framework/version details
+   - Should be reviewed to prevent information leakage
+
+---
+
+### Overall Evaluation
+
+The project demonstrates **high code quality**:
+
+- Security: ⭐⭐⭐⭐⭐ (A)
+- Reliability: ⭐⭐⭐⭐⭐ (A)
+- Maintainability: ⭐⭐⭐⭐☆ (A with minor issues)
+
+Only **minor improvements** are needed, mainly related to:
+- Code readability
+- Data structure optimization
+- Security configuration
+
+---
+
+### Conclusion
+
+The system is **well-structured, stable, and maintainable**, with no critical issues.  
+It is suitable for further development and extension.
 
 ## D1: Runnable System Verification
 
