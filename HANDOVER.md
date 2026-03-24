@@ -221,7 +221,3 @@ The project was successfully executed:
 - Staff management features
 
 ---
-
-## Conclusion
-
-The project is functional and ready for further development. Although the implementation differs from the original design (monolithic instead of modular), it still satisfies core requirements and is easy to extend.
