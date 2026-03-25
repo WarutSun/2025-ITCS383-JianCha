@@ -157,6 +157,19 @@ The project was analyzed using SonarQube, and the results show that the system *
 
 ### Maintainability Issues (3 Issues)
 
+The project was analyzed using SonarQube. The summary of results is as follows:
+
+**Overall Metrics**
+- Security: 3
+- Reliability: 46
+- Maintainability: 79
+
+**Issues by Severity**
+- **Blocker:** 2  
+- **High:** 11  
+- **Medium:** 58  
+- **Low:** 57
+
 1. **Using Array instead of Set (bookingController.js)**
    - Promo codes stored in array instead of Set
    - Recommended: use `Set` and `.has()` for better performance
@@ -168,7 +181,9 @@ The project was analyzed using SonarQube, and the results show that the system *
 3. **Using Array instead of Set (db.js)**
    - Column checking uses array instead of Set
    - Should use `Set` for efficiency
-
+     
+**Conclusion**
+The project passed the Quality Gate and demonstrates high code quality. Most issues are minor and mainly related to maintainability and code readability.
 ---
 
 ### Security Hotspots (2 Issues)
