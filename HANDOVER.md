@@ -182,7 +182,7 @@ The project was analyzed using SonarQube. The summary of results is as follows:
    - Column checking uses array instead of Set
    - Should use `Set` for efficiency
      
-**Conclusion**
+<br>**Conclusion**<br>
 The project passed the Quality Gate and demonstrates high code quality. Most issues are minor and mainly related to maintainability and code readability.
 ---
 
