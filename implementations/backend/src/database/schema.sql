@@ -1,6 +1,7 @@
 CREATE DATABASE IF NOT EXISTS jiancha_car_rental;
 USE jiancha_car_rental;
 
+-- Drop tables in reverse dependency order for clean re-runs
 DROP TABLE IF EXISTS reviews;
 DROP TABLE IF EXISTS bookings;
 DROP TABLE IF EXISTS cars;
