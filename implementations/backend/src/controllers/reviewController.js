@@ -13,6 +13,10 @@ const createReview = async (req, res) => {
       return res.status(400).json({ message: 'Rating must be between 1 and 5' });
     }
 
+    if (comment && comment.length > 500) {
+      return res.status(400).json({ message: 'Comment must be 500 characters or less' });
+    }
+
     // Verify booking belongs to user and is completed
     const [bookings] = await db.query(
       'SELECT * FROM bookings WHERE id = ? AND user_id = ? AND car_id = ?',
