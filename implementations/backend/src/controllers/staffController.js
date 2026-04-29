@@ -48,5 +48,30 @@ const resetDatabase = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 };
+const returnCar = async (req, res) => {
+  try {
+    const { id } = req.params;
 
-module.exports = { getDashboard, getReservationReport, resetDatabase };
+    const [bookings] = await db.query('SELECT * FROM bookings WHERE id = ?', [id]);
+    if (bookings.length === 0) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+
+    const booking = bookings[0];
+    if (booking.status !== 'confirmed') {
+      return res.status(400).json({ message: 'Only confirmed bookings can be returned' });
+    }
+
+    // Update booking to completed
+    await db.query('UPDATE bookings SET status = ? WHERE id = ?', ['completed', id]);
+
+    // Set car available again
+    await db.query('UPDATE cars SET is_available = TRUE WHERE id = ?', [booking.car_id]);
+
+    res.json({ message: 'Car returned and booking completed successfully' });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};
+
+module.exports = { getDashboard, getReservationReport, resetDatabase, returnCar };

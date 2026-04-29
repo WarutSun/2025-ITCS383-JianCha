@@ -3,9 +3,23 @@ const db = require('../database/db');
 const VALID_PROMO_CODES = ['ONLYTRAVELNAJA', 'GUBONUS', 'MEGA'];
 const DISCOUNT_PERCENT = 30;
 
+const getDropoffFee = (pickup, dropoff) => {
+  if (!dropoff || pickup.toLowerCase() === dropoff.toLowerCase()) return 0;
+  const fees = {
+    'bangkok': { 'pattaya': 400, 'hua hin': 500, 'chiang mai': 1500, 'phuket': 2500 },
+    'chiang mai': { 'bangkok': 1500, 'pattaya': 1800, 'hua hin': 2000, 'phuket': 3500 },
+    'phuket': { 'bangkok': 2500, 'hua hin': 2200, 'pattaya': 2800, 'chiang mai': 3500 },
+    'pattaya': { 'bangkok': 400, 'hua hin': 800, 'chiang mai': 1800, 'phuket': 2800 },
+    'hua hin': { 'bangkok': 500, 'pattaya': 800, 'chiang mai': 2000, 'phuket': 2200 }
+  };
+  const p = pickup.toLowerCase();
+  const d = dropoff.toLowerCase();
+  return fees[p]?.[d] || 300;
+};
+
 const createBooking = async (req, res) => {
   try {
-    const { car_id, pickup_date, return_date, promo_code } = req.body;
+    const { car_id, pickup_date, return_date, promo_code, dropoff_location } = req.body;
     const user_id = req.user.id;
 
     if (!car_id || !pickup_date || !return_date)
@@ -44,13 +58,20 @@ const createBooking = async (req, res) => {
       }
     }
 
-    await db.query(
-      'INSERT INTO bookings (user_id, car_id, pickup_date, return_date, total_price) VALUES (?, ?, ?, ?, ?)',
-      [user_id, car_id, pickup_date, return_date, total_price]
+    // Calculate drop-off fee if location is different
+    const pickup_location = car.location;
+    const final_dropoff_location = dropoff_location ? dropoff_location.trim() : pickup_location;
+    const dropoff_fee = getDropoffFee(pickup_location, final_dropoff_location);
+    
+    total_price += dropoff_fee;
+
+    const [result] = await db.query(
+      'INSERT INTO bookings (user_id, car_id, pickup_date, return_date, pickup_location, dropoff_location, dropoff_fee, total_price, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [user_id, car_id, pickup_date, return_date, pickup_location, final_dropoff_location, dropoff_fee, total_price, 'pending']
     );
     await db.query('UPDATE cars SET is_available = FALSE WHERE id = ?', [car_id]);
 
-    res.status(201).json({ message: 'Booking created', total_price });
+    res.status(201).json({ message: 'Booking created', total_price, booking_id: result.insertId });
   } catch (err) {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
@@ -60,9 +81,13 @@ const createBooking = async (req, res) => {
 const getMyBookings = async (req, res) => {
   try {
     const [bookings] = await db.query(
-      `SELECT b.*, c.brand, c.model, c.type, c.location 
-       FROM bookings b JOIN cars c ON b.car_id = c.id 
-       WHERE b.user_id = ?`,
+      `SELECT b.*, c.brand, c.model, c.type, c.location,
+              IF(r.id IS NOT NULL, 1, 0) as has_review
+       FROM bookings b 
+       JOIN cars c ON b.car_id = c.id 
+       LEFT JOIN reviews r ON b.id = r.booking_id
+       WHERE b.user_id = ?
+       ORDER BY b.created_at DESC`,
       [req.user.id]
     );
     res.json(bookings);
@@ -108,7 +133,6 @@ const payBooking = async (req, res) => {
     const { id } = req.params;
     const user_id = req.user.id;
 
-    // Check if booking exists and belongs to the user
     const [bookings] = await db.query(
       'SELECT * FROM bookings WHERE id = ? AND user_id = ?',
       [id, user_id]
@@ -119,11 +143,9 @@ const payBooking = async (req, res) => {
 
     const booking = bookings[0];
 
-    // Check if booking is pending
     if (booking.status !== 'pending')
       return res.status(400).json({ message: 'This booking is not pending payment' });
 
-    // Update booking status to confirmed
     await db.query('UPDATE bookings SET status = ? WHERE id = ?', ['confirmed', id]);
 
     res.json({ message: 'Payment successful! Booking confirmed', booking: { ...booking, status: 'confirmed' } });
@@ -132,4 +154,39 @@ const payBooking = async (req, res) => {
   }
 };
 
-module.exports = { createBooking, getMyBookings, cancelBooking, payBooking };
+const returnBooking = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user_id = req.user.id;
+
+    const [bookings] = await db.query(
+      'SELECT * FROM bookings WHERE id = ? AND user_id = ?',
+      [id, user_id]
+    );
+
+    if (bookings.length === 0)
+      return res.status(404).json({ message: 'Booking not found' });
+
+    const booking = bookings[0];
+
+    if (booking.status !== 'confirmed')
+      return res.status(400).json({ message: 'Only confirmed bookings can be returned' });
+
+    // Update booking to completed
+    await db.query('UPDATE bookings SET status = ? WHERE id = ?', ['completed', id]);
+
+    // Set car available again and update its location to the dropoff location
+    const newLocation = booking.dropoff_location || booking.pickup_location;
+    if (newLocation) {
+      await db.query('UPDATE cars SET is_available = TRUE, location = ? WHERE id = ?', [newLocation, booking.car_id]);
+    } else {
+      await db.query('UPDATE cars SET is_available = TRUE WHERE id = ?', [booking.car_id]);
+    }
+
+    res.json({ message: 'Car returned successfully' });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+};
+
+module.exports = { createBooking, getMyBookings, cancelBooking, payBooking, returnBooking };

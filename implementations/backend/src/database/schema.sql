@@ -32,9 +32,30 @@ CREATE TABLE IF NOT EXISTS bookings (
   car_id INT NOT NULL,
   pickup_date DATE NOT NULL,
   return_date DATE NOT NULL,
+  pickup_location VARCHAR(100),
+  dropoff_location VARCHAR(100),
+  dropoff_fee DECIMAL(10,2) DEFAULT 0.00,
   total_price DECIMAL(10,2) NOT NULL,
-  status ENUM('pending', 'confirmed', 'cancelled') DEFAULT 'pending',
+  status ENUM('pending', 'confirmed', 'cancelled', 'completed') DEFAULT 'pending',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (car_id) REFERENCES cars(id)
+);
+
+-- Add dropoff columns if not exists (MySQL ignores errors or we can just try)
+ALTER TABLE bookings ADD COLUMN pickup_location VARCHAR(100);
+ALTER TABLE bookings ADD COLUMN dropoff_location VARCHAR(100);
+ALTER TABLE bookings ADD COLUMN dropoff_fee DECIMAL(10,2) DEFAULT 0.00;
+
+CREATE TABLE IF NOT EXISTS reviews (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  booking_id INT NOT NULL UNIQUE,
+  user_id INT NOT NULL,
+  car_id INT NOT NULL,
+  rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
+  comment TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (booking_id) REFERENCES bookings(id),
   FOREIGN KEY (user_id) REFERENCES users(id),
   FOREIGN KEY (car_id) REFERENCES cars(id)
 );
