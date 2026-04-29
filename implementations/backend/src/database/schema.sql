@@ -23,8 +23,8 @@ CREATE TABLE IF NOT EXISTS cars (
 );
 
 -- Add promotion columns if not exists
-ALTER TABLE cars ADD COLUMN discount_percent INT DEFAULT 0;
-ALTER TABLE cars ADD COLUMN is_promotion TINYINT(1) DEFAULT 0;
+ALTER TABLE cars ADD COLUMN IF NOT EXISTS discount_percent INT DEFAULT 0;
+ALTER TABLE cars ADD COLUMN IF NOT EXISTS is_promotion TINYINT(1) DEFAULT 0;
 
 CREATE TABLE IF NOT EXISTS bookings (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -41,11 +41,6 @@ CREATE TABLE IF NOT EXISTS bookings (
   FOREIGN KEY (user_id) REFERENCES users(id),
   FOREIGN KEY (car_id) REFERENCES cars(id)
 );
-
--- Add dropoff columns if not exists (MySQL ignores errors or we can just try)
-ALTER TABLE bookings ADD COLUMN pickup_location VARCHAR(100);
-ALTER TABLE bookings ADD COLUMN dropoff_location VARCHAR(100);
-ALTER TABLE bookings ADD COLUMN dropoff_fee DECIMAL(10,2) DEFAULT 0.00;
 
 CREATE TABLE IF NOT EXISTS reviews (
   id INT AUTO_INCREMENT PRIMARY KEY,
