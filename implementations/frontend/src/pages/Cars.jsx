@@ -15,12 +15,15 @@ const DISCOUNT_PERCENT = 30;
 
 function Cars() {
   const [carsData, setCarsData] = useState([])
-  const [form, setForm] = useState({ pickup_date: '', return_date: '', promo_code: '' })
+  const [form, setForm] = useState({ pickup_date: '', return_date: '', promo_code: '', dropoff_location: '' })
   const [selectedCar, setSelectedCar] = useState(null)
   const [message, setMessage] = useState('')
   const [promoMessage, setPromoMessage] = useState('')
   const [openPickup, setOpenPickup] = useState(false)
   const [openReturn, setOpenReturn] = useState(false)
+  const [reviewsModalOpen, setReviewsModalOpen] = useState(false)
+  const [currentCarReviews, setCurrentCarReviews] = useState([])
+  const [loadingReviews, setLoadingReviews] = useState(false)
   const navigate = useNavigate()
 
   // Filter and search states
@@ -104,26 +107,56 @@ function Cars() {
     }
 
     try {
-      await api.post('/bookings', {
+      const response = await api.post('/bookings', {
         car_id: carId,
         pickup_date: form.pickup_date,
         return_date: form.return_date,
-        promo_code: form.promo_code || undefined
+        promo_code: form.promo_code || undefined,
+        dropoff_location: form.dropoff_location || undefined
       })
       
-      toast.success('Booking added to cart! Go to Bookings to complete payment.', {
-        duration: 4000,
-        icon: '🛒'
+      toast.success('Booking initialized! Redirecting to payment...', {
+        duration: 3000,
+        icon: '💳'
       })
       
       // Show navbar notification
       if (window.addNotification) {
-        window.addNotification('🛒 Booking added to cart!', 'success')
+        window.addNotification('💳 Booking initialized!', 'success')
       }
+      
+      window.dispatchEvent(new Event('bookingUpdated'))
+      
+      const car = carsData.find(c => c.id === carId)
+      const dropoffFee = (form.dropoff_location && form.dropoff_location.trim().toLowerCase() !== car.location.toLowerCase()) ? getDropoffFee(car.location, form.dropoff_location.trim()) : 0
+      
+      const originalPrice = (days * car.price_per_day) + dropoffFee
+      const finalPrice = response.data.total_price
+      
+      navigate('/payment', {
+        state: {
+          bookingId: response.data.booking_id,
+          carId: car.id,
+          pickup_date: form.pickup_date,
+          return_date: form.return_date,
+          car: {
+            brand: car.brand,
+            model: car.model,
+            type: car.type,
+            location: car.location,
+            price_per_day: car.price_per_day
+          },
+          days: days,
+          originalPrice: originalPrice,
+          discountedPrice: finalPrice,
+          dropoff_fee: dropoffFee,
+          promo_code: form.promo_code || null
+        }
+      })
       
       // Reset form and close modal
       setSelectedCar(null)
-      setForm({ pickup_date: '', return_date: '', promo_code: '' })
+      setForm({ pickup_date: '', return_date: '', promo_code: '', dropoff_location: '' })
       setPromoMessage('')
       
     } catch (err) {
@@ -131,8 +164,36 @@ function Cars() {
     }
   }
 
+  const handleViewReviews = async (carId) => {
+    setLoadingReviews(true)
+    setReviewsModalOpen(true)
+    try {
+      const res = await api.get(`/reviews/car/${carId}`)
+      setCurrentCarReviews(res.data)
+    } catch (err) {
+      toast.error('Failed to load reviews')
+    } finally {
+      setLoadingReviews(false)
+    }
+  }
+
+  const getDropoffFee = (pickup, dropoff) => {
+    if (!dropoff || pickup.toLowerCase() === dropoff.toLowerCase()) return 0;
+    const fees = {
+      'bangkok': { 'pattaya': 400, 'hua hin': 500, 'chiang mai': 1500, 'phuket': 2500 },
+      'chiang mai': { 'bangkok': 1500, 'pattaya': 1800, 'hua hin': 2000, 'phuket': 3500 },
+      'phuket': { 'bangkok': 2500, 'hua hin': 2200, 'pattaya': 2800, 'chiang mai': 3500 },
+      'pattaya': { 'bangkok': 400, 'hua hin': 800, 'chiang mai': 1800, 'phuket': 2800 },
+      'hua hin': { 'bangkok': 500, 'pattaya': 800, 'chiang mai': 2000, 'phuket': 2200 }
+    };
+    const p = pickup.toLowerCase();
+    const d = dropoff.toLowerCase();
+    return fees[p]?.[d] || 300;
+  };
+
   // Get unique locations for filter dropdown
   const locations = ['all', ...new Set(carsData.map(car => car.location))]
+  const allDropoffLocations = [...new Set([...carsData.map(car => car.location), 'Pattaya', 'Hua Hin'])]
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted">
@@ -229,8 +290,9 @@ function Cars() {
           ) : (
             filteredAndSortedCars.map(car => {
               const days = getDaysFromDates()
-              const originalPrice = days > 0 ? days * car.price_per_day : 0
-              const discountedPrice = days > 0 ? days * car.discounted_price : 0
+              const dropoffFee = (selectedCar === car.id && form.dropoff_location && form.dropoff_location.trim().toLowerCase() !== car.location.toLowerCase() && days > 0) ? getDropoffFee(car.location, form.dropoff_location.trim()) : 0
+              const originalPrice = days > 0 ? (days * car.price_per_day) + dropoffFee : 0
+              const discountedPrice = days > 0 ? (days * car.discounted_price) + dropoffFee : 0
               const hasDiscount = car.is_promotion && car.discounted_price < car.price_per_day
 
               return (
@@ -240,7 +302,16 @@ function Cars() {
                   </div>
                   <CardHeader>
                     <div className="flex justify-between items-start">
-                      <CardTitle className="text-xl">{car.brand} {car.model}</CardTitle>
+                      <div>
+                        <CardTitle className="text-xl flex items-center gap-2">
+                          {car.brand} {car.model}
+                        </CardTitle>
+                        {car.review_count > 0 && (
+                          <span className="text-sm text-yellow-600 font-medium">
+                            ⭐ {car.avg_rating} ({car.review_count} review{car.review_count > 1 ? 's' : ''})
+                          </span>
+                        )}
+                      </div>
                       {car.is_promotion && (
                         <Badge variant="secondary" className="bg-green-500 text-white">
                           🏷️ SALE
@@ -347,6 +418,26 @@ function Cars() {
                           )}
                         </div>
 
+                        {/* Drop-off Location Input */}
+                        <div className="space-y-1">
+                          <label className="text-xs text-muted-foreground font-medium">Drop-off Location</label>
+                          <select
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+                            value={form.dropoff_location || car.location}
+                            onChange={e => setForm({ ...form, dropoff_location: e.target.value })}
+                          >
+                            <option value={car.location}>{car.location} (Same as pick-up)</option>
+                            {allDropoffLocations.filter(l => l !== car.location).map(loc => (
+                              <option key={loc} value={loc}>{loc}</option>
+                            ))}
+                          </select>
+                          {form.dropoff_location && form.dropoff_location.trim().toLowerCase() !== car.location.toLowerCase() && (
+                            <span className="text-xs text-orange-600 block font-medium">
+                              +฿{getDropoffFee(car.location, form.dropoff_location.trim())} drop-off fee will be applied
+                            </span>
+                          )}
+                        </div>
+
                         {/* Price Preview */}
                         {days > 0 && (
                           <div className="text-sm p-2 bg-muted rounded">
@@ -376,9 +467,14 @@ function Cars() {
                         </Button>
                       </div>
                     ) : (
-                      <Button className="w-full mt-2" onClick={() => setSelectedCar(car.id)}>
-                        Book Now
-                      </Button>
+                      <div className="flex gap-2 mt-2">
+                        <Button className="flex-1" onClick={() => setSelectedCar(car.id)}>
+                          Book Now
+                        </Button>
+                        <Button variant="outline" className="flex-1" onClick={() => handleViewReviews(car.id)}>
+                          Reviews
+                        </Button>
+                      </div>
                     )}
                   </CardContent>
                 </Card>
@@ -386,6 +482,47 @@ function Cars() {
             })
           )}
         </div>
+
+        {/* Reviews Modal */}
+        {reviewsModalOpen && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <Card className="w-full max-w-lg max-h-[80vh] flex flex-col">
+              <CardHeader className="pb-2">
+                <div className="flex justify-between items-start">
+                  <CardTitle>Customer Reviews</CardTitle>
+                  <button 
+                    className="text-muted-foreground hover:text-foreground text-lg leading-none p-1" 
+                    onClick={() => setReviewsModalOpen(false)}
+                  >
+                    ✕
+                  </button>
+                </div>
+              </CardHeader>
+              <CardContent className="overflow-y-auto flex-1">
+                {loadingReviews ? (
+                  <p className="text-center py-8 text-muted-foreground">Loading reviews...</p>
+                ) : currentCarReviews.length === 0 ? (
+                  <p className="text-center py-8 text-muted-foreground">No reviews for this car yet.</p>
+                ) : (
+                  <div className="space-y-4">
+                    {currentCarReviews.map(review => (
+                      <div key={review.id} className="p-4 bg-muted rounded-lg border">
+                        <div className="flex justify-between items-start mb-2">
+                          <span className="font-semibold text-sm">{review.user_name}</span>
+                          <span className="text-yellow-500 text-sm">{'⭐'.repeat(review.rating)}</span>
+                        </div>
+                        <p className="text-sm mb-2">{review.comment || <span className="text-muted-foreground italic">No comment provided</span>}</p>
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(review.created_at).toLocaleDateString()}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </div>
     </div>
   )

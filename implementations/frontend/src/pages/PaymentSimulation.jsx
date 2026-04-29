@@ -35,9 +35,10 @@ function PaymentSimulation() {
     )
   }
 
-  const { car, days, originalPrice, discountedPrice, promo_code, pickup_date, return_date, carId, bookingId } = state
+  const { car, days, originalPrice, discountedPrice, promo_code, pickup_date, return_date, carId, bookingId, dropoff_fee } = state
   const hasDiscount = discountedPrice < originalPrice
   const isExistingBooking = !!bookingId
+  const safeDropoffFee = dropoff_fee || 0
 
   const handlePayment = async () => {
     setIsLoading(true)
@@ -62,6 +63,7 @@ function PaymentSimulation() {
           if (window.addNotification) {
             window.addNotification('✅ Payment successful! Booking confirmed.', 'success')
           }
+          window.dispatchEvent(new Event('bookingUpdated'))
         } else {
           // This shouldn't happen with the new flow, but keeping for compatibility
           await api.post('/bookings', {
@@ -78,6 +80,7 @@ function PaymentSimulation() {
           if (window.addNotification) {
             window.addNotification('✅ Booking confirmed! Payment successful.', 'success')
           }
+          window.dispatchEvent(new Event('bookingUpdated'))
         }
       } catch (err) {
         navigate('/bookings', {
@@ -141,8 +144,14 @@ function PaymentSimulation() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Subtotal ({days} days)</span>
-                  <span className="font-medium">฿{originalPrice}</span>
+                  <span className="font-medium">฿{originalPrice - safeDropoffFee}</span>
                 </div>
+                {safeDropoffFee > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Drop-off Fee</span>
+                    <span className="font-medium text-orange-600">+฿{safeDropoffFee}</span>
+                  </div>
+                )}
                 {hasDiscount && (
                   <>
                     <div className="flex justify-between text-green-600">

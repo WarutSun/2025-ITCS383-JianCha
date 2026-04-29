@@ -42,19 +42,25 @@ function Navbar() {
   }, [])
 
   useEffect(() => {
-    const fetchPendingBookings = async () => {
+    const fetchActiveBookings = async () => {
       if (!token) return
       
       try {
         const res = await api.get('/bookings')
-        const pendingBookings = res.data.filter(booking => booking.status === 'pending')
-        setPendingCount(pendingBookings.length)
+        // Count bookings that need action (payment or return)
+        const activeBookings = res.data.filter(booking => 
+          booking.status === 'pending' || booking.status === 'confirmed'
+        )
+        setPendingCount(activeBookings.length)
       } catch (err) {
-        console.error('Failed to fetch pending bookings:', err)
+        console.error('Failed to fetch active bookings:', err)
       }
     }
 
-    fetchPendingBookings()
+    fetchActiveBookings()
+
+    window.addEventListener('bookingUpdated', fetchActiveBookings)
+    return () => window.removeEventListener('bookingUpdated', fetchActiveBookings)
   }, [token])
 
   return (

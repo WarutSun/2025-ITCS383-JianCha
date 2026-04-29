@@ -16,6 +16,9 @@ import {
 function Bookings() {
   const [bookings, setBookings] = useState([])
   const [cancelingId, setCancelingId] = useState(null)
+  const [reviewModalOpen, setReviewModalOpen] = useState(false)
+  const [selectedBooking, setSelectedBooking] = useState(null)
+  const [reviewForm, setReviewForm] = useState({ rating: 5, comment: '' })
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -42,6 +45,19 @@ function Bookings() {
     }
   }, [location, navigate])
 
+  const handleReturnBooking = async (bookingId) => {
+    if (!window.confirm('Are you sure you want to return this car? This will complete your booking.')) return
+
+    try {
+      await api.put(`/bookings/${bookingId}/return`)
+      toast.success('Car returned successfully')
+      window.dispatchEvent(new Event('bookingUpdated'))
+      fetchBookings()
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to return car')
+    }
+  }
+
   const handleCancelBooking = async (bookingId) => {
     if (!window.confirm('Are you sure you want to cancel this booking?')) return
 
@@ -49,6 +65,7 @@ function Bookings() {
     try {
       await api.delete(`/bookings/${bookingId}`)
       toast.success('Booking cancelled successfully')
+      window.dispatchEvent(new Event('bookingUpdated'))
       fetchBookings()
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to cancel booking')
@@ -70,14 +87,32 @@ function Bookings() {
           model: booking.model,
           type: booking.type,
           location: booking.location,
-          price_per_day: booking.total_price / Math.ceil((new Date(booking.return_date) - new Date(booking.pickup_date)) / (1000 * 60 * 60 * 24))
+          price_per_day: (booking.total_price - (booking.dropoff_fee || 0)) / Math.ceil((new Date(booking.return_date) - new Date(booking.pickup_date)) / (1000 * 60 * 60 * 24))
         },
         days: Math.ceil((new Date(booking.return_date) - new Date(booking.pickup_date)) / (1000 * 60 * 60 * 24)),
         originalPrice: booking.total_price,
         discountedPrice: booking.total_price,
+        dropoff_fee: booking.dropoff_fee || 0,
         promo_code: null
       }
     })
+  }
+
+  const handleReviewSubmit = async (e) => {
+    e.preventDefault()
+    try {
+      await api.post('/reviews', {
+        booking_id: selectedBooking.id,
+        car_id: selectedBooking.car_id,
+        rating: reviewForm.rating,
+        comment: reviewForm.comment
+      })
+      toast.success('Review submitted successfully')
+      setReviewModalOpen(false)
+      fetchBookings()
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to submit review')
+    }
   }
 
   return (
@@ -102,8 +137,8 @@ function Bookings() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Car</TableHead>
-                    <TableHead>Pickup Date</TableHead>
-                    <TableHead>Return Date</TableHead>
+                    <TableHead>Locations</TableHead>
+                    <TableHead>Dates</TableHead>
                     <TableHead>Total Price</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Action</TableHead>
@@ -115,23 +150,59 @@ function Bookings() {
                       <TableCell className="font-medium">
                         {b.brand} {b.model}
                       </TableCell>
-                      <TableCell>{b.pickup_date?.split('T')[0]}</TableCell>
-                      <TableCell>{b.return_date?.split('T')[0]}</TableCell>
+                      <TableCell>
+                        <div className="text-sm">
+                          <div className="text-muted-foreground text-xs">Pick-up: <span className="text-foreground">{b.pickup_location || b.location}</span></div>
+                          <div className="text-muted-foreground text-xs">Drop-off: <span className="text-foreground">{b.dropoff_location || b.location}</span></div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm">
+                          <div className="text-muted-foreground text-xs">From: <span className="text-foreground">{b.pickup_date?.split('T')[0]}</span></div>
+                          <div className="text-muted-foreground text-xs">To: <span className="text-foreground">{b.return_date?.split('T')[0]}</span></div>
+                        </div>
+                      </TableCell>
                       <TableCell className="font-semibold">฿{b.total_price}</TableCell>
                       <TableCell>
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${b.status === 'cancelled' ? 'bg-destructive/10 text-destructive' : 'bg-primary/10 text-primary'}`}>
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                          b.status === 'cancelled' ? 'bg-destructive/10 text-destructive' : 
+                          b.status === 'completed' ? 'bg-purple-500/10 text-purple-500' :
+                          'bg-primary/10 text-primary'
+                        }`}>
                           {b.status}
                         </span>
                       </TableCell>
                       <TableCell>
+                        {b.status === 'completed' && !b.has_review && (
+                          <button
+                            className="mr-2 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold px-3 py-1.5 rounded-md text-sm transition-colors"
+                            onClick={() => {
+                              setSelectedBooking(b)
+                              setReviewForm({ rating: 5, comment: '' })
+                              setReviewModalOpen(true)
+                            }}
+                          >
+                            ⭐ Leave Review
+                          </button>
+                        )}
+                        {b.status === 'completed' && b.has_review === 1 && (
+                          <span className="text-sm text-muted-foreground mr-2">Reviewed ✓</span>
+                        )}
                         {b.status === 'pending' && (
-                          <Button
-                            size="sm"
-                            className="mr-2 bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded-lg shadow-sm"
+                          <button
+                            className="mr-2 bg-green-600 hover:bg-green-700 text-white font-semibold px-3 py-1.5 rounded-md text-sm transition-colors"
                             onClick={() => handlePayNow(b)}
                           >
                             💳 Pay Now
-                          </Button>
+                          </button>
+                        )}
+                        {b.status === 'confirmed' && (
+                          <button
+                            className="mr-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-3 py-1.5 rounded-md text-sm transition-colors"
+                            onClick={() => handleReturnBooking(b.id)}
+                          >
+                            🚗 Return Car
+                          </button>
                         )}
                         {(b.status === 'pending' || b.status === 'confirmed') && (
                           <Button
@@ -150,6 +221,52 @@ function Bookings() {
               </Table>
             </CardContent>
           </Card>
+        )}
+
+        {/* Review Modal */}
+        {reviewModalOpen && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <Card className="w-full max-w-md">
+              <CardHeader>
+                <CardTitle>Review {selectedBooking?.brand} {selectedBooking?.model}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleReviewSubmit} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Rating (1-5 stars)</label>
+                    <div className="flex gap-2">
+                      {[1, 2, 3, 4, 5].map(star => (
+                        <button
+                          key={star}
+                          type="button"
+                          onClick={() => setReviewForm({ ...reviewForm, rating: star })}
+                          className={`text-2xl ${star <= reviewForm.rating ? 'text-yellow-500' : 'text-gray-300'}`}
+                        >
+                          ★
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Comment</label>
+                    <textarea
+                      className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      placeholder="How was the car and service?"
+                      value={reviewForm.comment}
+                      onChange={e => setReviewForm({ ...reviewForm, comment: e.target.value })}
+                      rows={4}
+                    />
+                  </div>
+                  <div className="flex justify-end gap-2 mt-4">
+                    <Button type="button" variant="outline" onClick={() => setReviewModalOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button type="submit">Submit Review</Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
         )}
       </div>
     </div>

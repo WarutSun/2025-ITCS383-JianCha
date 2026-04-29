@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import toast from 'react-hot-toast'
 import api from '../../services/api'
 import { Card, CardContent } from '../../components/ui/card'
 import {
@@ -24,8 +25,22 @@ function Reports() {
   const confirmed = rows.filter(r => r.status === 'confirmed').length
   const pending = rows.filter(r => r.status === 'pending').length
   const cancelled = rows.filter(r => r.status === 'cancelled').length
+  const completed = rows.filter(r => r.status === 'completed').length
 
   const handlePrint = () => window.print()
+
+  const handleReturnCar = async (bookingId) => {
+    if (!window.confirm('Mark this car as returned and complete the booking?')) return
+    try {
+      await api.put(`/staff/return/${bookingId}`)
+      toast.success('Car returned successfully')
+      // Refresh list
+      const res = await api.get('/staff/reports/reservations')
+      setRows(res.data)
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to return car')
+    }
+  }
 
   return (
     <>
@@ -89,6 +104,10 @@ function Reports() {
               <p className="text-2xl font-bold text-red-500">{cancelled}</p>
               <p className="text-sm text-muted-foreground">Cancelled</p>
             </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-purple-500">{completed}</p>
+              <p className="text-sm text-muted-foreground">Completed</p>
+            </div>
           </div>
 
           {/* Table */}
@@ -105,6 +124,7 @@ function Reports() {
                     <TableHead>Return</TableHead>
                     <TableHead>Total</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead className="no-print">Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -120,11 +140,22 @@ function Reports() {
                       <TableCell>
                         <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
                           r.status === 'confirmed' ? 'bg-blue-500/10 text-blue-500' :
+                          r.status === 'completed' ? 'bg-purple-500/10 text-purple-500' :
                           r.status === 'cancelled' ? 'bg-red-500/10 text-red-500' :
                           'bg-yellow-500/10 text-yellow-500'
                         }`}>
                           {r.status}
                         </span>
+                      </TableCell>
+                      <TableCell className="no-print">
+                        {r.status === 'confirmed' && (
+                          <button
+                            onClick={() => handleReturnCar(r.id)}
+                            className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs"
+                          >
+                            Return Car
+                          </button>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}
