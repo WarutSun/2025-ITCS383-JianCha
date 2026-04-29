@@ -19,12 +19,11 @@ CREATE TABLE IF NOT EXISTS cars (
   price_per_day DECIMAL(10,2) NOT NULL,
   location VARCHAR(100) NOT NULL,
   is_available BOOLEAN DEFAULT TRUE,
+  discount_percent INT DEFAULT 0,
+  is_promotion TINYINT(1) DEFAULT 0,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Add promotion columns if not exists
-ALTER TABLE cars ADD COLUMN IF NOT EXISTS discount_percent INT DEFAULT 0;
-ALTER TABLE cars ADD COLUMN IF NOT EXISTS is_promotion TINYINT(1) DEFAULT 0;
 
 CREATE TABLE IF NOT EXISTS bookings (
   id INT AUTO_INCREMENT PRIMARY KEY,
