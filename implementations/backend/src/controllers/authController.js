@@ -2,6 +2,8 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('../database/db');
 
+const JWT_SECRET = process.env.JWT_SECRET;
+
 const register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -17,7 +19,8 @@ const register = async (req, res) => {
 
     res.status(201).json({ message: 'Registered successfully' });
   } catch (err) {
-    res.status(500).json({ message: 'Server error', error: err.message });
+    console.error('Register error:', err);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -38,13 +41,14 @@ const login = async (req, res) => {
 
     const token = jwt.sign(
       { id: user.id, role: user.role },
-      process.env.JWT_SECRET,
+      JWT_SECRET,
       { expiresIn: '24h' }
     );
 
     res.json({ token, user: { id: user.id, name: user.name, email: user.email, role: user.role } });
   } catch (err) {
-    res.status(500).json({ message: 'Server error', error: err.message });
+    console.error('Login error:', err);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 

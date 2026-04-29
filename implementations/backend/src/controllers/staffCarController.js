@@ -6,7 +6,8 @@ const getAllCars = async (req, res) => {
     const [cars] = await db.query('SELECT * FROM cars ORDER BY created_at DESC');
     res.json(cars);
   } catch (err) {
-    res.status(500).json({ message: 'Server error', error: err.message });
+    console.error('Staff get cars error:', err);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -30,7 +31,8 @@ const addCar = async (req, res) => {
       id: result.insertId
     });
   } catch (err) {
-    res.status(500).json({ message: 'Server error', error: err.message });
+    console.error('Add car error:', err);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -55,7 +57,8 @@ const updateCar = async (req, res) => {
 
     res.json({ message: 'Car updated successfully' });
   } catch (err) {
-    res.status(500).json({ message: 'Server error', error: err.message });
+    console.error('Update car error:', err);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -82,7 +85,8 @@ const deleteCar = async (req, res) => {
 
     res.json({ message: 'Car deleted successfully' });
   } catch (err) {
-    res.status(500).json({ message: 'Server error', error: err.message });
+    console.error('Delete car error:', err);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -107,7 +111,8 @@ const setPromotion = async (req, res) => {
 
     res.json({ message: 'Promotion updated successfully' });
   } catch (err) {
-    res.status(500).json({ message: 'Server error', error: err.message });
+    console.error('Set promotion error:', err);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 

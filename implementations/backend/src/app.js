@@ -17,19 +17,18 @@ app.set('trust proxy', 1);
 // Security headers
 app.use(helmet());
 
-// CORS — allow all origins in development, restrict in production
-const corsOrigin = process.env.NODE_ENV === 'production'
-  ? process.env.CORS_ORIGIN || 'https://your-frontend.vercel.app'
-  : '*';
+// CORS — restrict origins via environment variable
+const allowedOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
+  : ['http://localhost:5173'];
 
 app.use(cors({
-  origin: corsOrigin,
+  origin: allowedOrigins,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   preflightContinue: false,
   optionsSuccessStatus: 204
 }));
-app.options('*', cors());
 
 app.use(express.json());
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }));

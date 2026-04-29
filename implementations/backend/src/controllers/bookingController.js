@@ -55,7 +55,8 @@ const createBooking = async (req, res) => {
 
     res.status(201).json({ message: 'Booking created', total_price, booking_id: result.insertId });
   } catch (err) {
-    res.status(500).json({ message: 'Server error', error: err.message });
+    console.error('Create booking error:', err);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -74,7 +75,8 @@ const getMyBookings = async (req, res) => {
     );
     res.json(bookings);
   } catch (err) {
-    res.status(500).json({ message: 'Server error', error: err.message });
+    console.error('Get bookings error:', err);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -95,7 +97,8 @@ const cancelBooking = async (req, res) => {
 
     res.json({ message: 'Booking cancelled successfully' });
   } catch (err) {
-    res.status(500).json({ message: 'Server error', error: err.message });
+    console.error('Cancel booking error:', err);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -112,7 +115,8 @@ const payBooking = async (req, res) => {
 
     res.json({ message: 'Payment successful! Booking confirmed', booking: { ...booking, status: 'confirmed' } });
   } catch (err) {
-    res.status(500).json({ message: 'Server error', error: err.message });
+    console.error('Pay booking error:', err);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -129,7 +133,8 @@ const returnBooking = async (req, res) => {
 
     res.json({ message: 'Car returned successfully' });
   } catch (err) {
-    res.status(500).json({ message: 'Server error', error: err.message });
+    console.error('Return booking error:', err);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 

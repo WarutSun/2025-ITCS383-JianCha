@@ -17,7 +17,8 @@ const getDashboard = async (req, res) => {
       availableCars: carStats.availableCars,
     });
   } catch (err) {
-    res.status(500).json({ message: 'Server error', error: err.message });
+    console.error('Dashboard error:', err);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -31,7 +32,8 @@ const getReservationReport = async (req, res) => {
        JOIN cars c ON b.car_id = c.id`);
     res.json(rows);
   } catch (err) {
-    res.status(500).json({ message: 'Server error', error: err.message });
+    console.error('Report error:', err);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -46,7 +48,8 @@ const resetDatabase = async (req, res) => {
     
     res.json({ message: 'Database reset successfully' });
   } catch (err) {
-    res.status(500).json({ message: 'Server error', error: err.message });
+    console.error('Reset DB error:', err);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -63,7 +66,8 @@ const returnCar = async (req, res) => {
 
     res.json({ message: 'Car returned and booking completed successfully' });
   } catch (err) {
-    res.status(500).json({ message: 'Server error', error: err.message });
+    console.error('Return car error:', err);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 

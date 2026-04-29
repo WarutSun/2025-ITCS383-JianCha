@@ -33,7 +33,8 @@ const getAllCars = async (req, res) => {
     const [cars] = await db.query(query, params);
     res.json(cars.map(enrichCarData));
   } catch (err) {
-    res.status(500).json({ message: 'Server error', error: err.message });
+    console.error('Get cars error:', err);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -47,7 +48,8 @@ const getCarById = async (req, res) => {
     
     res.json(enrichCarData(cars[0]));
   } catch (err) {
-    res.status(500).json({ message: 'Server error', error: err.message });
+    console.error('Get car by ID error:', err);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
