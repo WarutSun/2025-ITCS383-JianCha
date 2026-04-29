@@ -6,7 +6,8 @@
     "dev": "nodemon src/server.js",
     "test": "jest --coverage",
     "lint": "eslint src/**/*.js",
-    "seed": "node seed.js"
+    "seed": "node seed.js",
+    "reset-db": "node reset-db.js"
   },
   "dependencies": {
     "express": "^4.18.2",

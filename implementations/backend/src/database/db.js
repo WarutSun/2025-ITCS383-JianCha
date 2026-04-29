@@ -131,6 +131,16 @@ const runMigrations = async () => {
     }
 
     // Migration logic for existing tables (adding columns if they were created by old schema)
+    const [carColumns] = await connection.query('SHOW COLUMNS FROM cars');
+    const carColumnNames = carColumns.map(col => col.Field);
+
+    if (!carColumnNames.includes('discount_percent')) {
+      await connection.query('ALTER TABLE cars ADD COLUMN discount_percent INT DEFAULT 0');
+    }
+    if (!carColumnNames.includes('is_promotion')) {
+      await connection.query('ALTER TABLE cars ADD COLUMN is_promotion BOOLEAN DEFAULT FALSE');
+    }
+
     const [bookingColumns] = await connection.query('SHOW COLUMNS FROM bookings');
     const bookingColumnNames = bookingColumns.map(col => col.Field);
 
