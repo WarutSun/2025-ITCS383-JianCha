@@ -1,13 +1,14 @@
 const mysql = require('mysql2/promise');
+require('dotenv').config();
 
 async function run() {
   try {
     const connection = await mysql.createConnection({
-      host: 'switchback.proxy.rlwy.net',
-      port: 37056,
-      user: 'root',
-      password: 'SfAwSBWNAHtRcSBGDyuzzTXZzyTqILhD',
-      database: 'railway',
+      host: process.env.RAILWAY_DB_HOST,
+      port: process.env.RAILWAY_DB_PORT,
+      user: process.env.RAILWAY_DB_USER,
+      password: process.env.RAILWAY_DB_PASSWORD,
+      database: process.env.RAILWAY_DB_NAME,
     });
 
     console.log('Connected to Railway DB. Applying promotions...');
@@ -16,7 +17,7 @@ async function run() {
     
     await connection.end();
   } catch (error) {
-    console.error('❌ Error applying promotions:', error);
+    console.error('❌ Error applying promotions:', error.message);
   }
 }
 

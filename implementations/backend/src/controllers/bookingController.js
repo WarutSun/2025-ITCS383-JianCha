@@ -1,21 +1,7 @@
 const db = require('../database/db');
-
-const VALID_PROMO_CODES = ['ONLYTRAVELNAJA', 'GUBONUS', 'MEGA'];
-const DISCOUNT_PERCENT = 30;
-
-const getDropoffFee = (pickup, dropoff) => {
-  if (!dropoff || pickup.toLowerCase() === dropoff.toLowerCase()) return 0;
-  const fees = {
-    'bangkok': { 'pattaya': 400, 'hua hin': 500, 'chiang mai': 1500, 'phuket': 2500 },
-    'chiang mai': { 'bangkok': 1500, 'pattaya': 1800, 'hua hin': 2000, 'phuket': 3500 },
-    'phuket': { 'bangkok': 2500, 'hua hin': 2200, 'pattaya': 2800, 'chiang mai': 3500 },
-    'pattaya': { 'bangkok': 400, 'hua hin': 800, 'chiang mai': 1800, 'phuket': 2800 },
-    'hua hin': { 'bangkok': 500, 'pattaya': 800, 'chiang mai': 2000, 'phuket': 2200 }
-  };
-  const p = pickup.toLowerCase();
-  const d = dropoff.toLowerCase();
-  return fees[p]?.[d] || 300;
-};
+const { getDropoffFee } = require('../utils/dropoffFees');
+const { calculateDiscountedPrice, applyPromoDiscount } = require('../utils/pricing');
+const { findUserBooking, completeCarReturn } = require('../utils/bookingHelpers');
 
 const createBooking = async (req, res) => {
   try {
@@ -48,15 +34,11 @@ const createBooking = async (req, res) => {
       return res.status(400).json({ message: 'Rental period cannot exceed 30 days. Contact admin for long-term rentals.' });
 
     // Use discounted price if promotion is active
-    const price_per_day = car.is_promotion ? Math.round(car.price_per_day * (1 - car.discount_percent / 100)) : car.price_per_day;
+    const price_per_day = calculateDiscountedPrice(car.price_per_day, car.is_promotion, car.discount_percent);
     let total_price = days * price_per_day;
 
     // Apply promo code discount if valid
-    if (promo_code) {
-      if (VALID_PROMO_CODES.includes(promo_code.toUpperCase())) {
-        total_price = Math.round(total_price * (1 - DISCOUNT_PERCENT / 100));
-      }
-    }
+    total_price = applyPromoDiscount(total_price, promo_code);
 
     // Calculate drop-off fee if location is different
     const pickup_location = car.location;
@@ -98,26 +80,15 @@ const getMyBookings = async (req, res) => {
 
 const cancelBooking = async (req, res) => {
   try {
-    const { id } = req.params;
-    const user_id = req.user.id;
-
-    // Check if booking exists and belongs to the user
-    const [bookings] = await db.query(
-      'SELECT * FROM bookings WHERE id = ? AND user_id = ?',
-      [id, user_id]
-    );
-
-    if (bookings.length === 0)
+    const booking = await findUserBooking(req.params.id, req.user.id);
+    if (!booking)
       return res.status(404).json({ message: 'Booking not found' });
 
-    const booking = bookings[0];
-
-    // Check if booking can be cancelled (not already cancelled)
     if (booking.status === 'cancelled')
       return res.status(400).json({ message: 'This booking is already cancelled' });
 
     // Update booking status to cancelled
-    await db.query('UPDATE bookings SET status = ? WHERE id = ?', ['cancelled', id]);
+    await db.query('UPDATE bookings SET status = ? WHERE id = ?', ['cancelled', booking.id]);
 
     // Set car back to available
     await db.query('UPDATE cars SET is_available = TRUE WHERE id = ?', [booking.car_id]);
@@ -130,23 +101,14 @@ const cancelBooking = async (req, res) => {
 
 const payBooking = async (req, res) => {
   try {
-    const { id } = req.params;
-    const user_id = req.user.id;
-
-    const [bookings] = await db.query(
-      'SELECT * FROM bookings WHERE id = ? AND user_id = ?',
-      [id, user_id]
-    );
-
-    if (bookings.length === 0)
+    const booking = await findUserBooking(req.params.id, req.user.id);
+    if (!booking)
       return res.status(404).json({ message: 'Booking not found' });
-
-    const booking = bookings[0];
 
     if (booking.status !== 'pending')
       return res.status(400).json({ message: 'This booking is not pending payment' });
 
-    await db.query('UPDATE bookings SET status = ? WHERE id = ?', ['confirmed', id]);
+    await db.query('UPDATE bookings SET status = ? WHERE id = ?', ['confirmed', booking.id]);
 
     res.json({ message: 'Payment successful! Booking confirmed', booking: { ...booking, status: 'confirmed' } });
   } catch (err) {
@@ -156,32 +118,14 @@ const payBooking = async (req, res) => {
 
 const returnBooking = async (req, res) => {
   try {
-    const { id } = req.params;
-    const user_id = req.user.id;
-
-    const [bookings] = await db.query(
-      'SELECT * FROM bookings WHERE id = ? AND user_id = ?',
-      [id, user_id]
-    );
-
-    if (bookings.length === 0)
+    const booking = await findUserBooking(req.params.id, req.user.id);
+    if (!booking)
       return res.status(404).json({ message: 'Booking not found' });
-
-    const booking = bookings[0];
 
     if (booking.status !== 'confirmed')
       return res.status(400).json({ message: 'Only confirmed bookings can be returned' });
 
-    // Update booking to completed
-    await db.query('UPDATE bookings SET status = ? WHERE id = ?', ['completed', id]);
-
-    // Set car available again and update its location to the dropoff location
-    const newLocation = booking.dropoff_location || booking.pickup_location;
-    if (newLocation) {
-      await db.query('UPDATE cars SET is_available = TRUE, location = ? WHERE id = ?', [newLocation, booking.car_id]);
-    } else {
-      await db.query('UPDATE cars SET is_available = TRUE WHERE id = ?', [booking.car_id]);
-    }
+    await completeCarReturn(booking);
 
     res.json({ message: 'Car returned successfully' });
   } catch (err) {

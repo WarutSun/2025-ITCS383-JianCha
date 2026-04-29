@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 
 const authRoutes = require('./routes/authRoutes');
@@ -13,9 +14,16 @@ const app = express();
 
 app.set('trust proxy', 1);
 
-// CORS ต้องอยู่ก่อน middleware อื่นทั้งหมด
+// Security headers
+app.use(helmet());
+
+// CORS — allow all origins in development, restrict in production
+const corsOrigin = process.env.NODE_ENV === 'production'
+  ? process.env.CORS_ORIGIN || 'https://your-frontend.vercel.app'
+  : '*';
+
 app.use(cors({
-  origin: '*',
+  origin: corsOrigin,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   preflightContinue: false,

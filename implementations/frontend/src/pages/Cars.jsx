@@ -9,9 +9,7 @@ import { Input } from '../components/ui/input'
 import { Calendar } from '../components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '../components/ui/popover'
 import { Badge } from '../components/ui/badge'
-
-const VALID_PROMO_CODES = ['ONLYTRAVELNAJA', 'GUBONUS', 'MEGA'];
-const DISCOUNT_PERCENT = 30;
+import { getDropoffFee, VALID_PROMO_CODES, PROMO_DISCOUNT_PERCENT, isValidPromoCode } from '../lib/pricing'
 
 function Cars() {
   const [carsData, setCarsData] = useState([])
@@ -47,10 +45,10 @@ function Cars() {
   const getDaysFromDates = () => calculateDays(form.pickup_date, form.return_date)
 
   const getDiscountedPrice = (originalPrice) => {
-    if (!form.promo_code || !VALID_PROMO_CODES.includes(form.promo_code.toUpperCase())) {
+    if (!isValidPromoCode(form.promo_code)) {
       return originalPrice
     }
-    return Math.round(originalPrice * (1 - DISCOUNT_PERCENT / 100))
+    return Math.round(originalPrice * (1 - PROMO_DISCOUNT_PERCENT / 100))
   }
 
   // Filter and search logic
@@ -90,7 +88,7 @@ function Cars() {
       setPromoMessage('')
       return
     }
-    if (VALID_PROMO_CODES.includes(code.toUpperCase())) {
+    if (isValidPromoCode(code)) {
       setPromoMessage('✅ Promo applied! 30% discount')
     } else {
       setPromoMessage('❌ Invalid promo code')
@@ -177,19 +175,7 @@ function Cars() {
     }
   }
 
-  const getDropoffFee = (pickup, dropoff) => {
-    if (!dropoff || pickup.toLowerCase() === dropoff.toLowerCase()) return 0;
-    const fees = {
-      'bangkok': { 'pattaya': 400, 'hua hin': 500, 'chiang mai': 1500, 'phuket': 2500 },
-      'chiang mai': { 'bangkok': 1500, 'pattaya': 1800, 'hua hin': 2000, 'phuket': 3500 },
-      'phuket': { 'bangkok': 2500, 'hua hin': 2200, 'pattaya': 2800, 'chiang mai': 3500 },
-      'pattaya': { 'bangkok': 400, 'hua hin': 800, 'chiang mai': 1800, 'phuket': 2800 },
-      'hua hin': { 'bangkok': 500, 'pattaya': 800, 'chiang mai': 2000, 'phuket': 2200 }
-    };
-    const p = pickup.toLowerCase();
-    const d = dropoff.toLowerCase();
-    return fees[p]?.[d] || 300;
-  };
+  // getDropoffFee is now imported from '../lib/pricing'
 
   // Get unique locations for filter dropdown
   const locations = ['all', ...new Set(carsData.map(car => car.location))]

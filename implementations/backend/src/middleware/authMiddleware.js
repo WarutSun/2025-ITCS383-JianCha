@@ -13,4 +13,15 @@ const authenticate = (req, res, next) => {
   }
 };
 
-module.exports = { authenticate };
+/**
+ * Role-check middleware factory. Restricts access to users with a specific role.
+ * Usage: router.get('/path', authenticate, authorizeRole('staff'), handler)
+ */
+const authorizeRole = (role) => (req, res, next) => {
+  if (!req.user || req.user.role !== role) {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+  next();
+};
+
+module.exports = { authenticate, authorizeRole };

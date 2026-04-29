@@ -1,16 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const { authenticate } = require('../middleware/authMiddleware');
+const { authenticate, authorizeRole } = require('../middleware/authMiddleware');
 const { getDashboard, getReservationReport, resetDatabase, returnCar } = require('../controllers/staffController');
 const { getAllCars, addCar, updateCar, deleteCar, setPromotion } = require('../controllers/staffCarController');
-
-// role-check middleware
-const authorizeRole = (role) => (req, res, next) => {
-  if (!req.user || req.user.role !== role) {
-    return res.status(403).json({ message: 'Forbidden' });
-  }
-  next();
-};
 
 // Dashboard and Reports
 router.get('/dashboard', authenticate, authorizeRole('staff'), getDashboard);
