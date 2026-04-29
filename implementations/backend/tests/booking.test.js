@@ -4,6 +4,13 @@ const db = require('../src/database/db');
 
 let token;
 
+// Helper to generate future dates in YYYY-MM-DD format
+function futureDate(daysFromNow) {
+  const d = new Date();
+  d.setDate(d.getDate() + daysFromNow);
+  return d.toISOString().split('T')[0];
+}
+
 beforeAll(async () => {
   // Clean up any existing test data first
   await db.query('DELETE FROM bookings WHERE user_id = (SELECT id FROM users WHERE email = ?)', ['bookingtest@test.com']);
@@ -46,7 +53,7 @@ describe('POST /api/bookings', () => {
     const res = await request(app)
       .post('/api/bookings')
       .set('Authorization', `Bearer ${token}`)
-      .send({ car_id: 2, pickup_date: '2026-03-15', return_date: '2026-03-17' });
+      .send({ car_id: 2, pickup_date: futureDate(5), return_date: futureDate(7) });
     expect(res.statusCode).toBe(201);
     expect(res.body).toHaveProperty('total_price');
   });
@@ -54,7 +61,7 @@ describe('POST /api/bookings', () => {
   it('should fail without token', async () => {
     const res = await request(app)
       .post('/api/bookings')
-      .send({ car_id: 3, pickup_date: '2026-03-15', return_date: '2026-03-17' });
+      .send({ car_id: 3, pickup_date: futureDate(5), return_date: futureDate(7) });
     expect(res.statusCode).toBe(401);
   });
 
@@ -79,7 +86,7 @@ describe('POST /api/bookings', () => {
     const res = await request(app)
       .post('/api/bookings')
       .set('Authorization', `Bearer ${token}`)
-      .send({ car_id: 5, pickup_date: '2026-03-15', return_date: '2026-04-20' });
+      .send({ car_id: 5, pickup_date: futureDate(5), return_date: futureDate(40) });
     expect(res.statusCode).toBe(400);
     expect(res.body.message).toContain('30 days');
   });
@@ -90,8 +97,8 @@ describe('POST /api/bookings', () => {
       .set('Authorization', `Bearer ${token}`)
       .send({
         car_id: 6,
-        pickup_date: '2026-03-18',
-        return_date: '2026-03-20',
+        pickup_date: futureDate(10),
+        return_date: futureDate(12),
         promo_code: 'ONLYTRAVELNAJA'
       });
     expect(res.statusCode).toBe(201);
@@ -106,8 +113,8 @@ describe('POST /api/bookings', () => {
       .set('Authorization', `Bearer ${token}`)
       .send({
         car_id: 7,
-        pickup_date: '2026-03-21',
-        return_date: '2026-03-23',
+        pickup_date: futureDate(15),
+        return_date: futureDate(17),
         promo_code: 'INVALID_CODE'
       });
     // Should create booking without discount, not reject
@@ -123,7 +130,7 @@ describe('PUT /api/bookings/:id/pay', () => {
     const bookingRes = await request(app)
       .post('/api/bookings')
       .set('Authorization', `Bearer ${token}`)
-      .send({ car_id: 8, pickup_date: '2026-03-24', return_date: '2026-03-26' });
+      .send({ car_id: 8, pickup_date: futureDate(20), return_date: futureDate(22) });
     if (bookingRes.statusCode === 201) {
       bookingId = bookingRes.body.id;
     }
@@ -158,3 +165,4 @@ describe('PUT /api/bookings/:id/pay', () => {
     expect(res.statusCode).toBeGreaterThanOrEqual(400);
   });
 });
+
