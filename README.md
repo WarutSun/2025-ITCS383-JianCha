@@ -212,6 +212,23 @@ Time:        ~3s
 - One-way rentals incur a **500 THB drop-off fee**.
 - Reviews can only be submitted for bookings with `completed` status.
 
+   --- 
+  ## Mobile Application
+
+> **Added in Phase 2**
+
+A native Android mobile application was developed in Phase 2 to extend TravelNaja's reach to mobile users. The app supports **all user-facing functionalities** available on the web system, including:
+
+- Browse and search available cars
+- Make and manage reservations
+- View rental history
+- Submit car reviews (new Phase 2 feature)
+- One-way rental booking (new Phase 2 feature)
+
+**Mobile Repository:** [INSERT MOBILE REPO LINK HERE](https://github.com/WarutSun/JianCha_MoblieApplication)
+
+   --- 
+
 Thank you from Jiancha Group
 ```
 6688009	Sunattha	Boonla-or
