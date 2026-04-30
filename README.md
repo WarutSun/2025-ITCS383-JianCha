@@ -63,7 +63,7 @@ Make sure you have the following installed:
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/ICT-Mahidol/2025-ITCS383-JianCha.git
+git clone https://github.com/WarutSun/2025-ITCS383-JianCha.git
 cd 2025-ITCS383-JianCha
 
 # 2. Start MySQL database
