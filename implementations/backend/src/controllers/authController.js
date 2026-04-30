@@ -4,6 +4,7 @@ const db = require('../database/db');
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
+// Handle user registration and authentication
 const register = async (req, res) => {
   try {
     const { name, email, password } = req.body;

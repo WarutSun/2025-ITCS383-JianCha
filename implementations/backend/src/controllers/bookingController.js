@@ -3,6 +3,7 @@ const { getDropoffFee } = require('../utils/dropoffFees');
 const { calculateDiscountedPrice, applyPromoDiscount } = require('../utils/pricing');
 const { findUserBooking, completeCarReturn } = require('../utils/bookingHelpers');
 
+// Controller to handle car booking logic
 const createBooking = async (req, res) => {
   try {
     const { car_id, pickup_date, return_date, promo_code, dropoff_location } = req.body;

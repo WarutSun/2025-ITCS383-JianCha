@@ -19,6 +19,7 @@ const CAR_WITH_REVIEWS_QUERY = `
   LEFT JOIN reviews r ON c.id = r.car_id
 `;
 
+// Retrieve and filter available cars for the user
 const getAllCars = async (req, res) => {
   try {
     const { location, type } = req.query;

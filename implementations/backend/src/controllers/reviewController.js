@@ -1,5 +1,6 @@
 const db = require('../database/db');
 
+// Create a new review for a completed booking
 const createReview = async (req, res) => {
   try {
     const { booking_id, car_id, rating, comment } = req.body;

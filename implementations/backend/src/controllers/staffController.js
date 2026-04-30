@@ -40,7 +40,8 @@ const getReservationReport = async (req, res) => {
 // reset database - delete all bookings and reset car availability
 const resetDatabase = async (req, res) => {
   try {
-    // Delete all bookings
+    // Delete all reviews first (FK constraint), then bookings
+    await db.query('DELETE FROM reviews');
     await db.query('DELETE FROM bookings');
     
     // Reset all cars to available
