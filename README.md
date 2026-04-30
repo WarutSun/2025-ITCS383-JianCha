@@ -2,7 +2,7 @@
 
 ## 🌐 Live Demo
 
-- https://jianchatravelnaja.vercel.app/
+-https://test1-wvuw.vercel.app/
 
 ### 🔑 Test Accounts
 
