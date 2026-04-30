@@ -214,9 +214,7 @@ Time:        ~3s
 
    --- 
   ## Mobile Application
-
-> **Added in Phase 2**
-
+  
 A native Android mobile application was developed in Phase 2 to extend TravelNaja's reach to mobile users. The app supports **all user-facing functionalities** available on the web system, including:
 
 - Browse and search available cars
