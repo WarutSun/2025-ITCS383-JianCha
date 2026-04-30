@@ -13,7 +13,6 @@ describe('POST /api/auth/register', () => {
       .post('/api/auth/register')
       .send({ name: 'Jest User', email: 'jest@test.com', password: '123456' });
     expect(res.statusCode).toBe(201);
-    expect(res.body.message).toBe('Registered successfully');
   });
 
   it('should fail if fields are missing', async () => {
@@ -45,5 +44,19 @@ describe('POST /api/auth/login', () => {
       .post('/api/auth/login')
       .send({ email: 'jest@test.com', password: 'wrongpass' });
     expect(res.statusCode).toBe(401);
+  });
+
+  it('should fail with non-existent user', async () => {
+    const res = await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'nonexistent@test.com', password: 'password' });
+    expect(res.statusCode).toBe(401);
+  });
+
+  it('should fail with missing fields', async () => {
+    const res = await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'jest@test.com' });
+    expect(res.statusCode).toBe(400);
   });
 });

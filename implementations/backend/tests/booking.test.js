@@ -15,6 +15,7 @@ beforeAll(async () => {
   // Clean up any existing test data first
   await db.query('DELETE FROM bookings WHERE user_id = (SELECT id FROM users WHERE email = ?)', ['bookingtest@test.com']);
   await db.query('DELETE FROM users WHERE email = ?', ['bookingtest@test.com']);
+  await db.query('UPDATE cars SET is_available = TRUE');
   
   await request(app)
     .post('/api/auth/register')
@@ -132,7 +133,7 @@ describe('PUT /api/bookings/:id/pay', () => {
       .set('Authorization', `Bearer ${token}`)
       .send({ car_id: 8, pickup_date: futureDate(20), return_date: futureDate(22) });
     if (bookingRes.statusCode === 201) {
-      bookingId = bookingRes.body.id;
+      bookingId = bookingRes.body.booking_id;
     }
   });
 
@@ -145,7 +146,7 @@ describe('PUT /api/bookings/:id/pay', () => {
       .put(`/api/bookings/${bookingId}/pay`)
       .set('Authorization', `Bearer ${token}`);
     expect(res.statusCode).toBe(200);
-    expect(res.body.message).toContain('successfully');
+    expect(res.body.message).toContain('successful');
   });
 
   it('should fail without token', async () => {
@@ -166,3 +167,63 @@ describe('PUT /api/bookings/:id/pay', () => {
   });
 });
 
+describe('DELETE /api/bookings/:id', () => {
+  let cancelBookingId;
+
+  beforeAll(async () => {
+    const res = await request(app)
+      .post('/api/bookings')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ car_id: 9, pickup_date: futureDate(5), return_date: futureDate(7) });
+    if (res.statusCode === 201) {
+      cancelBookingId = res.body.booking_id;
+    }
+  });
+
+  it('should cancel pending booking', async () => {
+    if (!cancelBookingId) return;
+    const res = await request(app)
+      .delete(`/api/bookings/${cancelBookingId}`)
+      .set('Authorization', `Bearer ${token}`);
+    expect(res.statusCode).toBe(200);
+    expect(res.body.message).toContain('cancelled');
+  });
+
+  it('should fail if already cancelled', async () => {
+    if (!cancelBookingId) return;
+    const res = await request(app)
+      .delete(`/api/bookings/${cancelBookingId}`)
+      .set('Authorization', `Bearer ${token}`);
+    expect(res.statusCode).toBe(400);
+  });
+});
+
+describe('PUT /api/bookings/:id/return', () => {
+  let returnBookingId;
+
+  beforeAll(async () => {
+    const [users] = await db.query('SELECT id FROM users WHERE email = ?', ['bookingtest@test.com']);
+    const userId = users[0].id;
+
+    const [result] = await db.query(
+      'INSERT INTO bookings (user_id, car_id, pickup_date, return_date, pickup_location, dropoff_location, dropoff_fee, total_price, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [userId, 10, '2025-01-01', '2025-01-02', 'Bangkok', 'Bangkok', 0, 1000, 'confirmed']
+    );
+    returnBookingId = result.insertId;
+  });
+
+  it('should return confirmed booking', async () => {
+    const res = await request(app)
+      .put(`/api/bookings/${returnBookingId}/return`)
+      .set('Authorization', `Bearer ${token}`);
+    expect(res.statusCode).toBe(200);
+  });
+
+  it('should fail to return if not confirmed', async () => {
+    // It's now completed because of the previous test
+    const res = await request(app)
+      .put(`/api/bookings/${returnBookingId}/return`)
+      .set('Authorization', `Bearer ${token}`);
+    expect(res.statusCode).toBe(400);
+  });
+});

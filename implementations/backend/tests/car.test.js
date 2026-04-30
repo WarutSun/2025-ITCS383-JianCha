@@ -24,6 +24,20 @@ describe('GET /api/cars', () => {
     expect(res.statusCode).toBe(200);
     res.body.forEach(car => expect(car.type).toBe('sedan'));
   });
+  it('should filter by location and type', async () => {
+    const res = await request(app).get('/api/cars?location=Bangkok&type=sedan');
+    expect(res.statusCode).toBe(200);
+    res.body.forEach(car => {
+      expect(car.location).toBe('Bangkok');
+      expect(car.type).toBe('sedan');
+    });
+  });
+
+  it('should return empty list for non-matching filters', async () => {
+    const res = await request(app).get('/api/cars?location=NonExistent');
+    expect(res.statusCode).toBe(200);
+    expect(res.body.length).toBe(0);
+  });
 });
 
 describe('GET /api/cars/:id', () => {
