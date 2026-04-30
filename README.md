@@ -1,14 +1,14 @@
-# Travel Naja Car Rental Reservation System
+# Travel Naja Car Rental Reservation System with 3 additional features [Phase 2]
 
 ## 🌐 Live Demo
 
--https://test1-wvuw.vercel.app/
+- https://test1-wvuw.vercel.app/
 
 ### 🔑 Test Accounts
 
 | Role | Email | Password |
 |------|-------|----------|
-| Staff | staff@jiancha.com | staff1234 |
+| Staff | DDD@gmail.com | DDD |
 | Member | (register via app) | - |
 
 This repository contains a full-stack car rental reservation system built as part of the Travel Naja platform. It demonstrates a simple RESTful API backed by a MySQL database and a modern React/Tailwind frontend using shadcn/ui components. The backend handles user authentication, car listings, bookings, cancellations, staff reporting, and promotion management.
@@ -19,10 +19,19 @@ This repository contains a full-stack car rental reservation system built as par
 
 - **Domain**: Car rental reservations
 - **Purpose**: Allow users to browse available cars, make reservations, view/cancel their bookings, and provide staff with an administrative dashboard and reports.
-- **Architecture**: Split into two main implementations:
+- **Architecture**: Split into multiple implementations:
   - **Backend** (Node.js/Express) offers JSON APIs and connects to MySQL
-  - **Frontend** (React + Vite + Tailwind + shadcn/ui) provides a SPA for customers and staff
+  - **Frontend Web** (React + Vite + Tailwind + shadcn/ui) provides a SPA for customers and staff
+  - **Mobile App** (Flutter) provides a native Android/iOS client for customers (**NEW**)
   - Docker Compose is used for running the database locally.
+
+---
+
+## ✨ Phase 2 New Features
+
+1. **Mobile Application**: A fully functional Flutter mobile app for customers to browse cars, make bookings, and manage their reservations on the go.
+2. **One-Way Car Rentals**: Customers can now specify different pick-up and drop-off locations, with the system automatically applying a 500 THB drop-off fee.
+3. **Car Review System**: Users can now submit a star rating (1-5) and a written review (up to 500 characters) for completed bookings. These reviews are displayed on the car details page.
 
 ---
 
@@ -31,6 +40,7 @@ This repository contains a full-stack car rental reservation system built as par
 | Layer | Technology |
 |-------|-----------|
 | Frontend | React, Vite, Tailwind CSS (v3), shadcn/ui |
+| Mobile | Flutter, Dart |
 | Backend | Node.js (>=20), Express, JWT, bcrypt |
 | Database | MySQL (dockerized via `docker-compose`) |
 | Hosting | Vercel (frontend), Render (backend), Clever Cloud (MySQL) |
@@ -45,6 +55,7 @@ Make sure you have the following installed:
 - Node.js **v20 or later**
 - Docker (for MySQL service)
 - Git (for cloning the repo)
+- Flutter SDK (for mobile app development)
 
 ---
 
@@ -64,33 +75,16 @@ cp .env.example .env
 npm install
 npm run dev
 
-# 4. Update Frontend .env with your Codespace URL (Terminal 2)
-# First, check your Codespace name:
-echo $CODESPACE_NAME
-# Example output: crispy-robot-pj449jw97rg3g96
-
-# Then update the frontend .env:
-echo "VITE_API_URL=https://${CODESPACE_NAME}-8080.app.github.dev/api" > implementations/frontend/.env
-
-# Verify it looks correct (example):
-cat implementations/frontend/.env
-# Expected output:
-# VITE_API_URL=https://crispy-robot-pj449jw97rg3g96-8080.app.github.dev/api
-
-# 5. Start Frontend (Terminal 2)
+# 4. Start Frontend (Terminal 2)
 cd implementations/frontend
 npm install
 npm run dev
+
+# 5. Start Mobile App (Terminal 3)
+cd implementations/mobile
+flutter pub get
+flutter run
 ```
-
-### ⚠️ Codespace Warning
-If you are running this project inside a **GitHub Codespace**, after starting the backend:
-
-1. Open the **PORTS** tab in the Codespace UI.
-2. Right-click on port **8080** and set **Visibility → Public**.
-3. Re-run step 4 every time you open a new Codespace (URL changes each time).
-
-Otherwise, the frontend won't be able to reach the backend because of tunnel authentication.
 
 ---
 
@@ -98,6 +92,7 @@ Otherwise, the frontend won't be able to reach the backend because of tunnel aut
 
 - Backend API: http://localhost:8080
 - Frontend app: http://localhost:5173
+- Mobile app: Runs on Emulator or Physical Device
 
 ---
 
@@ -119,9 +114,16 @@ Otherwise, the frontend won't be able to reach the backend because of tunnel aut
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
 | GET | `/api/bookings` | Member | Retrieve bookings for logged-in user |
-| POST | `/api/bookings` | Member | Create a new booking (supports `promo_code`) |
+| POST | `/api/bookings` | Member | Create a new booking (supports `promo_code` & drop-off locations) |
 | DELETE | `/api/bookings/:id` | Member | Cancel a booking |
 | PUT | `/api/bookings/:id/pay` | Member | Confirm payment for a booking |
+| PUT | `/api/bookings/:id/return` | Member | Return a car and complete booking |
+
+### Reviews
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| POST | `/api/reviews` | Member | Submit a review for a completed booking |
+| GET | `/api/reviews/car/:carId` | No | Get all reviews for a specific car |
 
 ### User Profile
 | Method | Endpoint | Auth | Description |
@@ -139,20 +141,6 @@ Otherwise, the frontend won't be able to reach the backend because of tunnel aut
 | PUT | `/api/staff/cars/:id` | Staff | Update car details |
 | DELETE | `/api/staff/cars/:id` | Staff | Delete car |
 | PUT | `/api/staff/cars/:id/promotion` | Staff | Set promotion discount on car |
-| DELETE | `/api/staff/reset` | Staff | Reset all bookings and restore cars |
-
-### Local Guides
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/api/guides` | No | List approved guides |
-| POST | `/api/guides/request` | No | Submit guide request |
-| PUT | `/api/guides/:id/approve` | Staff | Approve guide application |
-| PUT | `/api/guides/:id/reject` | Staff | Reject guide application |
-
-### Health
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/health` | No | API health check |
 
 > All authenticated endpoints require `Authorization: Bearer <token>` header.
 
@@ -191,35 +179,8 @@ Time:        ~3s
 |---|---|
 | auth.test.js | Register, login, duplicate email, missing fields |
 | car.test.js | List cars, filter by location/type, get by ID, 404 |
-| booking.test.js | Auth guard, create booking, cancel, pay, promo code, date validation |
-| staff.test.js | Dashboard stats, reports, car CRUD, reset DB |
-
-### ⚠️ Common Issue — Tests Failing with 500 Errors
-
-**Root Cause:** MySQL not running or `.env` credentials don't match `docker-compose.yml`
-
-```bash
-# Check Docker is running
-docker ps
-
-# Check .env credentials match docker-compose.yml
-cat implementations/backend/.env | grep DB_PASSWORD
-# Must match MYSQL_PASSWORD in docker-compose.yml
-```
-
----
-
-## 🧪 Test Accounts
-
-| Role | Email | Password |
-|------|-------|----------|
-| Staff | staff@jiancha.com | staff1234 |
-| Member | Register via the app | - |
-
-To create a staff user manually:
-```sql
-UPDATE users SET role = 'staff' WHERE email = 'you@example.com';
-```
+| booking.test.js | Auth guard, create booking, cancel, pay, promo code, date validation, drop-off fee |
+| staff.test.js | Dashboard stats, reports, car CRUD, promotions |
 
 ---
 
@@ -230,22 +191,15 @@ UPDATE users SET role = 'staff' WHERE email = 'you@example.com';
 ├── docker-compose.yml
 ├── designs/                        # D1 - C4 diagrams
 ├── implementations/
-│   ├── backend/
-│   │   ├── src/
-│   │   │   ├── controllers/
-│   │   │   ├── routes/
-│   │   │   ├── middleware/
-│   │   │   └── database/
-│   │   └── tests/
-│   └── frontend/
-│       └── src/
-│           ├── pages/
-│           ├── components/
-│           └── services/
+│   ├── backend/                    # Node.js API
+│   ├── frontend/                   # React Web App
+│   └── mobile/                     # Flutter Mobile App
 ├── AGENTS.md
 ├── Jiancha_D3_AILog.md
 ├── Jiancha_D4_QualityReport.md
-└── README.md
+├── README.md                       # Initial version
+├── README2.md                      # Phase 1 updates
+└── README3.md                      # Phase 2 updates (This file)
 ```
 
 ---
@@ -255,7 +209,8 @@ UPDATE users SET role = 'staff' WHERE email = 'you@example.com';
 - Rental period is limited to **30 days**. Contact admin for long-term rentals.
 - Past dates cannot be selected for pickup.
 - Payment is simulated (no real payment gateway).
-- The service is structured for educational/demo purposes.
+- One-way rentals incur a **500 THB drop-off fee**.
+- Reviews can only be submitted for bookings with `completed` status.
 
 Thank you from Jiancha Group
 ```
@@ -266,3 +221,6 @@ Thank you from Jiancha Group
 6688137	Natnicha	Uppariputthangkul
 6688163	Aroonrat	Choochue
 ---
+```
+
+
