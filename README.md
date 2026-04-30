@@ -226,16 +226,17 @@ A native Android mobile application was developed in Phase 2 to extend TravelNaj
 **Mobile Repository:** (https://github.com/WarutSun/JianCha_MoblieApplication)
 
    --- 
-
-Thank you from Jiancha Group
-```
-6688009	Sunattha	Boonla-or
-6688076	Kunruethai	Patimapornchai
-6688095	Tinakome	Rasripenngam
-6688104	 Phubase	Sangliamthong
-6688137	Natnicha	Uppariputthangkul
-6688163	Aroonrat	Choochue
 ---
-```
+
+## 👥 Team Members
+
+| Student ID | Name |
+|------------|------|
+| 6688046 | Warut Khamkaveephart |
+| 6688194 | Muhummadcharif Kapa |
+| 6688083 | Teeramanop Pinsupa |
+| 6688148 | Bunyakorn Wongchadakul |
+| 6688205 | Sirawit Noomanoch |
+| 6688226 | Thanawat Thanasirithip |
 
 
