@@ -223,7 +223,7 @@ A native Android mobile application was developed in Phase 2 to extend TravelNaj
 - Submit car reviews (new Phase 2 feature)
 - One-way rental booking (new Phase 2 feature)
 
-**Mobile Repository:** [INSERT MOBILE REPO LINK HERE](https://github.com/WarutSun/JianCha_MoblieApplication)
+**Mobile Repository:** (https://github.com/WarutSun/JianCha_MoblieApplication)
 
    --- 
 
